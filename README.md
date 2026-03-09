@@ -105,7 +105,8 @@ npm run dev
 ```
 
 | Service  | URL                     |
-| -------- | ----------------------- |
+| -------- | -------------------
+---- |
 | Frontend | http://localhost:5173   |
 | Backend  | http://localhost:5000   |
 | API Docs | http://localhost:5000/api/health |

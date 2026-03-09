@@ -1,15 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
-const { isStaffOrHod } = require('../middleware/roles');
-const ctrl = require('../controllers/subjects');
+const ctrl = require('../controllers/students');
 
-router.use(authenticate);
-
-router.get('/', ctrl.getSubjects);
-router.get('/:id', ctrl.getSubjectById);
-router.post('/', isStaffOrHod, ctrl.createSubject);
-router.put('/:id', isStaffOrHod, ctrl.updateSubject);
-router.delete('/:id', isStaffOrHod, ctrl.deleteSubject);
+// GET /api/subjects — returns subjects for the authenticated user
+// Used by student pages that call '/subjects' standalone
+router.get('/', authenticate, ctrl.getSubjects);
 
 module.exports = router;

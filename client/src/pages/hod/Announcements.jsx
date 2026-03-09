@@ -14,7 +14,7 @@ export default function HodAnnouncements() {
     const [modalOpen, setModalOpen] = useState(false);
     const [formData, setFormData] = useState({ title: '', content: '', targetRole: '' });
 
-    const { data: announcements, isLoading, refetch } = useApiQuery('hod-announcements', '/announcements');
+    const { data: announcements, isLoading, refetch } = useApiQuery('hod-announcements', '/hod/announcements');
     const createMutation = useApiMutation('/hod/announcements', 'post', { invalidateKeys: [['hod-announcements']] });
 
     const handleSubmit = (e) => {
@@ -36,7 +36,7 @@ export default function HodAnnouncements() {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this announcement?')) return;
         try {
-            await api.delete(`/announcements/${id}`);
+            await api.delete(`/hod/announcements/${id}`);
             refetch();
         } catch (err) {
             alert('Failed to delete.');

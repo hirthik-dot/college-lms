@@ -2,12 +2,15 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
-const authController = require('../controllers/auth');
+const ctrl = require('../controllers/auth');
 
 // POST /api/auth/login
-router.post('/login', authLimiter, authController.login);
+router.post('/login', authLimiter, ctrl.login);
+
+// POST /api/auth/logout
+router.post('/logout', authenticate, ctrl.logout);
 
 // GET /api/auth/me  (protected)
-router.get('/me', authenticate, authController.getProfile);
+router.get('/me', authenticate, ctrl.getProfile);
 
 module.exports = router;

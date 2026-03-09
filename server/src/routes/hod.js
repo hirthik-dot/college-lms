@@ -7,36 +7,38 @@ const ctrl = require('../controllers/hod');
 // All routes require authentication + HOD role
 router.use(authenticate, isHod);
 
+// Dashboard
 router.get('/dashboard', ctrl.getDashboard);
 
 // Staff management
 router.get('/staff', ctrl.getStaff);
-router.post('/staff', ctrl.addStaff);
+router.post('/staff', ctrl.createStaff);
 router.put('/staff/:id', ctrl.updateStaff);
-router.delete('/staff/:id', ctrl.removeStaff);
 
 // Student management
 router.get('/students', ctrl.getStudents);
-router.post('/students', ctrl.addStudent);
+router.post('/students', ctrl.createStudent);
 router.put('/students/:id', ctrl.updateStudent);
-router.delete('/students/:id', ctrl.removeStudent);
 
 // Subject management
 router.get('/subjects', ctrl.getSubjects);
-router.post('/subjects', ctrl.addSubject);
+router.post('/subjects', ctrl.createSubject);
 router.put('/subjects/:id', ctrl.updateSubject);
-router.delete('/subjects/:id', ctrl.removeSubject);
+router.post('/subjects/:id/enroll', ctrl.bulkEnroll);
 
 // Reports
-router.get('/attendance-reports', ctrl.getAttendanceReports);
-router.get('/marks-reports', ctrl.getMarksReports);
-router.get('/department-reports', ctrl.getDepartmentReports);
+router.get('/reports/attendance', ctrl.getAttendanceReport);
+router.get('/reports/marks', ctrl.getMarksReport);
+router.get('/reports/assignments', ctrl.getAssignmentReport);
+router.get('/reports/staff-activity', ctrl.getStaffActivityReport);
 
-// Leave approvals
+// Leave management
 router.get('/leaves', ctrl.getLeaves);
-router.put('/leaves/:id', ctrl.approveOrRejectLeave);
+router.put('/leaves/:id', ctrl.reviewLeave);
+router.put('/leaves/:id/status', ctrl.reviewLeave);  // frontend uses /status suffix
 
 // Announcements
 router.post('/announcements', ctrl.createAnnouncement);
+router.get('/announcements', ctrl.getAnnouncements);
 
 module.exports = router;

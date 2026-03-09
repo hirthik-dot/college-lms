@@ -13,7 +13,7 @@ import { HiOutlineUserPlus, HiOutlineTrash, HiOutlinePencilSquare } from 'react-
 export default function ManageStaff() {
     const [modalOpen, setModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [formData, setFormData] = useState({ id: '', name: '', email: '', password: '', phone: '' });
+    const [formData, setFormData] = useState({ id: '', username: '', full_name: '', email: '', password: '', phone: '' });
 
     const { data: staff, isLoading, refetch } = useApiQuery('hod-staff', '/hod/staff');
 
@@ -22,13 +22,13 @@ export default function ManageStaff() {
 
     const handleOpenCreate = () => {
         setIsEditMode(false);
-        setFormData({ id: '', name: '', email: '', password: '', phone: '' });
+        setFormData({ id: '', username: '', full_name: '', email: '', password: '', phone: '' });
         setModalOpen(true);
     };
 
     const handleOpenEdit = (user) => {
         setIsEditMode(true);
-        setFormData({ id: user.id, name: user.name, email: user.email, password: '', phone: user.phone || '' });
+        setFormData({ id: user.id, username: user.username || '', full_name: user.full_name || user.name || '', email: user.email, password: '', phone: user.phone || '' });
         setModalOpen(true);
     };
 
@@ -36,7 +36,7 @@ export default function ManageStaff() {
         e.preventDefault();
         if (isEditMode) {
             updateMutation.mutate(
-                { name: formData.name, phone: formData.phone },
+                { full_name: formData.full_name, phone: formData.phone },
                 {
                     onSuccess: () => {
                         setModalOpen(false);
@@ -48,7 +48,13 @@ export default function ManageStaff() {
             );
         } else {
             createMutation.mutate(
-                formData,
+                {
+                    username: formData.username,
+                    full_name: formData.full_name,
+                    email: formData.email,
+                    password: formData.password,
+                    phone: formData.phone,
+                },
                 {
                     onSuccess: () => {
                         setModalOpen(false);
@@ -110,7 +116,7 @@ export default function ManageStaff() {
                                                 <div className="flex items-center gap-3">
                                                     <Avatar name={s.name} size="md" />
                                                     <div>
-                                                        <p className="font-semibold text-surface-900">{s.name}</p>
+                                                        <p className="font-semibold text-surface-900">{s.full_name || s.name}</p>
                                                         <p className="text-2xs text-surface-500">ID: STF-{s.id}</p>
                                                     </div>
                                                 </div>
@@ -151,11 +157,21 @@ export default function ManageStaff() {
                 {/* Create/Edit Modal */}
                 <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={isEditMode ? 'Edit Staff Details' : 'Add New Staff'}>
                     <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                        {!isEditMode && (
+                            <Input
+                                label="Username"
+                                required
+                                value={formData.username}
+                                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                placeholder="e.g. janesmith"
+                                helperText="A unique login username for the staff member."
+                            />
+                        )}
                         <Input
                             label="Full Name"
                             required
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            value={formData.full_name}
+                            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                             placeholder="e.g. Dr. Jane Smith"
                         />
                         <Input

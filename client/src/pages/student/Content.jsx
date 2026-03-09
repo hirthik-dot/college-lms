@@ -1,19 +1,33 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PageWrapper from '../../components/layout/PageWrapper';
 import Card, { CardHeader, CardTitle } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import { useApiQuery } from '../../hooks/useApi';
 import { formatDateTime } from '../../utils/helpers';
 import { HiOutlineDocumentDownload } from 'react-icons/hi';
+import { FileText, BookOpen, Sparkles } from 'lucide-react';
 
 export default function Content() {
-    const [subjectId, setSubjectId] = useState('');
+    const [searchParams] = useSearchParams();
+    const initialSubject = searchParams.get('subjectId') || '';
+    const [subjectId, setSubjectId] = useState(initialSubject);
+
     const { data: subjects } = useApiQuery('student-subjects', '/subjects');
     const { data: content, isLoading } = useApiQuery(
         ['student-content', subjectId],
-        `/students/content?subjectId=${subjectId}`,
+        `/students/content/${subjectId}`,
         { enabled: !!subjectId }
     );
+
+    // Fetch faculty-released materials for the selected subject
+    const { data: facultyMaterials } = useApiQuery(
+        ['student-faculty-materials', subjectId],
+        `/student/materials/${subjectId}`,
+        { enabled: !!subjectId, retry: false }
+    );
+
+    const apiBase = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
 
     return (
         <PageWrapper>
@@ -85,7 +99,58 @@ export default function Content() {
                     </div>
                 )}
 
-                {subjectId && !isLoading && content?.length === 0 && (
+                {/* Faculty-Released Materials Section */}
+                {subjectId && facultyMaterials && facultyMaterials.length > 0 && (
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-blue-600" />
+                            <h2 className="text-lg font-bold text-gray-900">Released by Faculty</h2>
+                        </div>
+
+                        {facultyMaterials.map((group, gi) => (
+                            <div key={gi} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
+                                    <div className="flex items-center gap-2">
+                                        <BookOpen className="w-4 h-4 text-blue-600" />
+                                        <h3 className="text-sm font-semibold text-gray-900">{group.topicName}</h3>
+                                        <span className="text-xs text-gray-500">· {group.unitName}</span>
+                                    </div>
+                                </div>
+                                <div className="divide-y divide-gray-50">
+                                    {group.materials.map((mat) => (
+                                        <a
+                                            key={mat.id}
+                                            href={`${apiBase}${mat.file_url}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-4 px-5 py-3 hover:bg-blue-50/30 transition-colors"
+                                        >
+                                            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
+                                                <FileText className="w-5 h-5 text-blue-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-sm font-medium text-gray-900 truncate">{mat.title}</p>
+                                                    {mat.is_new && (
+                                                        <span className="text-[10px] font-bold bg-blue-600 text-white px-1.5 py-0.5 rounded-full uppercase">
+                                                            NEW
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-500">
+                                                    {mat.material_type?.toUpperCase()}
+                                                    {mat.released_at && ` · Released ${new Date(mat.released_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`}
+                                                </p>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {subjectId && !isLoading && content?.length === 0 && (!facultyMaterials || facultyMaterials.length === 0) && (
                     <Card>
                         <p className="text-surface-500 text-sm text-center py-8">
                             No content available for this subject.

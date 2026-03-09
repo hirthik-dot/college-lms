@@ -1,141 +1,207 @@
 const db = require('../models/db');
-const { createError } = require('../middleware/errorHandler');
-const { validateUserCreate } = require('../utils/validators');
-const { ROLES } = require('../config/constants');
+const { hashPassword } = require('../utils/bcrypt');
+const {
+    validateUserCreate,
+    validateSubject,
+    validateAnnouncement,
+} = require('../utils/validators');
+
+// ── Helper: get HOD's department ────────────────────────────
+const getHodDeptId = async (userId) => {
+    const user = await db.findUserById(userId);
+    return user ? user.department_id : null;
+};
 
 /**
  * GET /api/hod/dashboard
  */
 const getDashboard = async (req, res, next) => {
     try {
-        const user = await db.findUserById(req.user.id);
-        if (!user) throw createError('HOD not found.', 404);
+        const deptId = await getHodDeptId(req.user.id);
+        const stats = await db.getDepartmentStats(deptId);
+        const announcements = await db.findAllAnnouncements(deptId);
 
-        const stats = await db.getDepartmentStats(user.department_id);
-        const announcements = await db.findAnnouncements(user.department_id, 'hod');
-
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            data: { user, stats, announcements },
+            data: {
+                stats,
+                recentAnnouncements: announcements.slice(0, 5),
+            },
         });
-    } catch (error) {
-        next(error);
+    } catch (err) {
+        next(err);
     }
 };
+
+// ═══════════════════════════════════════════════════════════════
+// STAFF MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
 
 /**
  * GET /api/hod/staff
  */
 const getStaff = async (req, res, next) => {
     try {
-        const staff = await db.findUsersByRole(ROLES.STAFF, req.user.departmentId);
-        res.status(200).json({ success: true, data: staff });
-    } catch (error) {
-        next(error);
+        const deptId = await getHodDeptId(req.user.id);
+        const staff = await db.findUsersByRole('staff', deptId);
+        return res.status(200).json({ success: true, data: staff });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
  * POST /api/hod/staff
+ * Body: { username, email, password, full_name, phone, employeeId, designation }
  */
-const addStaff = async (req, res, next) => {
+const createStaff = async (req, res, next) => {
     try {
-        const { name, email, password, phone } = req.body;
+        const { username, email, password, full_name, phone, employeeId, designation } = req.body;
 
-        const validation = validateUserCreate({ name, email, password, role: ROLES.STAFF });
-        if (!validation.valid) {
-            return res.status(400).json({ success: false, errors: validation.errors });
+        const { valid, errors } = validateUserCreate({ username, email, password, full_name, role: 'staff' });
+        if (!valid) {
+            return res.status(400).json({ success: false, message: 'Validation failed.', errors });
         }
 
-        const existing = await db.findUserByEmail(email.toLowerCase().trim());
-        if (existing) throw createError('A user with this email already exists.', 409);
+        // Check duplicate username/email
+        const existingUsername = await db.findUserByUsername(username);
+        if (existingUsername) {
+            return res.status(409).json({ success: false, message: 'Username already taken.' });
+        }
+        const existingEmail = await db.findUserByEmail(email);
+        if (existingEmail) {
+            return res.status(409).json({ success: false, message: 'Email already in use.' });
+        }
 
-        const staff = await db.createUser({
-            name,
-            email: email.toLowerCase().trim(),
+        const deptId = await getHodDeptId(req.user.id);
+
+        const user = await db.createUser({
+            username,
+            email,
             password,
-            role: ROLES.STAFF,
-            departmentId: req.user.departmentId,
+            role: 'staff',
+            full_name,
             phone,
+            departmentId: deptId,
         });
 
-        res.status(201).json({ success: true, data: staff });
-    } catch (error) {
-        next(error);
+        // Create staff profile if employeeId provided
+        let profile = null;
+        if (employeeId) {
+            profile = await db.createStaffProfile({
+                userId: user.id,
+                employeeId,
+                designation,
+                phone,
+            });
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: 'Staff account created.',
+            data: { ...user, profile },
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
  * PUT /api/hod/staff/:id
+ * Body: { full_name, email, phone, is_active, … }
  */
 const updateStaff = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const { name, phone } = req.body;
+        const staffId = req.params.id;
+        const user = await db.findUserById(staffId);
 
-        const updated = await db.updateUser(id, { name, phone });
-        if (!updated) throw createError('Staff member not found.', 404);
+        if (!user || user.role !== 'staff') {
+            return res.status(404).json({ success: false, message: 'Staff member not found.' });
+        }
 
-        res.status(200).json({ success: true, data: updated });
-    } catch (error) {
-        next(error);
+        const updated = await db.updateUser(staffId, req.body);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Staff member updated.',
+            data: updated,
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
-/**
- * DELETE /api/hod/staff/:id
- */
-const removeStaff = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const deleted = await db.deleteUser(id);
-        if (!deleted) throw createError('Staff member not found.', 404);
-
-        res.status(200).json({ success: true, message: 'Staff member removed.' });
-    } catch (error) {
-        next(error);
-    }
-};
+// ═══════════════════════════════════════════════════════════════
+// STUDENT MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
 
 /**
  * GET /api/hod/students
  */
 const getStudents = async (req, res, next) => {
     try {
-        const students = await db.findUsersByRole(ROLES.STUDENT, req.user.departmentId);
-        res.status(200).json({ success: true, data: students });
-    } catch (error) {
-        next(error);
+        const deptId = await getHodDeptId(req.user.id);
+        const students = await db.findUsersByRole('student', deptId);
+        return res.status(200).json({ success: true, data: students });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
  * POST /api/hod/students
+ * Body: { username, email, password, full_name, phone, rollNumber, batch, yearOfStudy, parentPhone }
  */
-const addStudent = async (req, res, next) => {
+const createStudent = async (req, res, next) => {
     try {
-        const { name, email, password, phone } = req.body;
+        const { username, email, password, full_name, phone, rollNumber, batch, yearOfStudy, parentPhone } = req.body;
 
-        const validation = validateUserCreate({ name, email, password, role: ROLES.STUDENT });
-        if (!validation.valid) {
-            return res.status(400).json({ success: false, errors: validation.errors });
+        const { valid, errors } = validateUserCreate({ username, email, password, full_name, role: 'student' });
+        if (!valid) {
+            return res.status(400).json({ success: false, message: 'Validation failed.', errors });
         }
 
-        const existing = await db.findUserByEmail(email.toLowerCase().trim());
-        if (existing) throw createError('A user with this email already exists.', 409);
+        const existingUsername = await db.findUserByUsername(username);
+        if (existingUsername) {
+            return res.status(409).json({ success: false, message: 'Username already taken.' });
+        }
+        const existingEmail = await db.findUserByEmail(email);
+        if (existingEmail) {
+            return res.status(409).json({ success: false, message: 'Email already in use.' });
+        }
 
-        const student = await db.createUser({
-            name,
-            email: email.toLowerCase().trim(),
+        const deptId = await getHodDeptId(req.user.id);
+
+        const user = await db.createUser({
+            username,
+            email,
             password,
-            role: ROLES.STUDENT,
-            departmentId: req.user.departmentId,
+            role: 'student',
+            full_name,
             phone,
+            departmentId: deptId,
         });
 
-        res.status(201).json({ success: true, data: student });
-    } catch (error) {
-        next(error);
+        // Create student profile if rollNumber provided
+        let profile = null;
+        if (rollNumber) {
+            profile = await db.createStudentProfile({
+                userId: user.id,
+                rollNumber,
+                batch,
+                yearOfStudy,
+                phone,
+                parentPhone,
+            });
+        }
+
+        return res.status(201).json({
+            success: true,
+            message: 'Student account created.',
+            data: { ...user, profile },
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
@@ -144,65 +210,73 @@ const addStudent = async (req, res, next) => {
  */
 const updateStudent = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const { name, phone } = req.body;
+        const studentId = req.params.id;
+        const user = await db.findUserById(studentId);
 
-        const updated = await db.updateUser(id, { name, phone });
-        if (!updated) throw createError('Student not found.', 404);
+        if (!user || user.role !== 'student') {
+            return res.status(404).json({ success: false, message: 'Student not found.' });
+        }
 
-        res.status(200).json({ success: true, data: updated });
-    } catch (error) {
-        next(error);
+        const updated = await db.updateUser(studentId, req.body);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Student updated.',
+            data: updated,
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
-/**
- * DELETE /api/hod/students/:id
- */
-const removeStudent = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const deleted = await db.deleteUser(id);
-        if (!deleted) throw createError('Student not found.', 404);
-
-        res.status(200).json({ success: true, message: 'Student removed.' });
-    } catch (error) {
-        next(error);
-    }
-};
+// ═══════════════════════════════════════════════════════════════
+// SUBJECT MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
 
 /**
  * GET /api/hod/subjects
  */
 const getSubjects = async (req, res, next) => {
     try {
-        const subjects = await db.findSubjectsByDepartment(req.user.departmentId);
-        res.status(200).json({ success: true, data: subjects });
-    } catch (error) {
-        next(error);
+        const deptId = await getHodDeptId(req.user.id);
+        const subjects = await db.findAllSubjects(deptId);
+        return res.status(200).json({ success: true, data: subjects });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
  * POST /api/hod/subjects
+ * Body: { name, code, semester, academicYear, staffId }
  */
-const addSubject = async (req, res, next) => {
+const createSubject = async (req, res, next) => {
     try {
-        const { name, code, staffId, semester } = req.body;
+        const { name, code, semester, academicYear, staffId } = req.body;
 
-        if (!name || !code) throw createError('Subject name and code are required.', 400);
+        const { valid, errors } = validateSubject({ name, code, semester });
+        if (!valid) {
+            return res.status(400).json({ success: false, message: 'Validation failed.', errors });
+        }
+
+        const deptId = await getHodDeptId(req.user.id);
 
         const subject = await db.createSubject({
             name,
             code,
-            departmentId: req.user.departmentId,
-            staffId,
             semester,
+            academicYear,
+            departmentId: deptId,
+            staffId: staffId || null,
         });
 
-        res.status(201).json({ success: true, data: subject });
-    } catch (error) {
-        next(error);
+        return res.status(201).json({
+            success: true,
+            message: 'Subject created.',
+            data: subject,
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
@@ -211,183 +285,256 @@ const addSubject = async (req, res, next) => {
  */
 const updateSubject = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const { name, code, staffId, semester } = req.body;
-
-        const updated = await db.updateSubject(id, { name, code, staff_id: staffId, semester });
-        if (!updated) throw createError('Subject not found.', 404);
-
-        res.status(200).json({ success: true, data: updated });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * DELETE /api/hod/subjects/:id
- */
-const removeSubject = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const deleted = await db.deleteSubject(id);
-        if (!deleted) throw createError('Subject not found.', 404);
-
-        res.status(200).json({ success: true, message: 'Subject removed.' });
-    } catch (error) {
-        next(error);
-    }
-};
-
-/**
- * GET /api/hod/attendance-reports
- */
-const getAttendanceReports = async (req, res, next) => {
-    try {
-        const students = await db.findUsersByRole(ROLES.STUDENT, req.user.departmentId);
-        const subjects = await db.findSubjectsByDepartment(req.user.departmentId);
-
-        const reports = [];
-        for (const student of students) {
-            const studentReport = { student: { id: student.id, name: student.name }, subjects: [] };
-            for (const subject of subjects) {
-                const summary = await db.getAttendanceSummary(student.id, subject.id);
-                studentReport.subjects.push({
-                    subjectId: subject.id,
-                    subjectName: subject.name,
-                    ...summary,
-                });
-            }
-            reports.push(studentReport);
+        const subject = await db.findSubjectById(req.params.id);
+        if (!subject) {
+            return res.status(404).json({ success: false, message: 'Subject not found.' });
         }
 
-        res.status(200).json({ success: true, data: reports });
-    } catch (error) {
-        next(error);
+        const updated = await db.updateSubject(req.params.id, req.body);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Subject updated.',
+            data: updated,
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * GET /api/hod/marks-reports
+ * POST /api/hod/subjects/:id/enroll
+ * Body: { studentIds: [1, 2, 3, …] }
  */
-const getMarksReports = async (req, res, next) => {
+const bulkEnroll = async (req, res, next) => {
     try {
-        const subjects = await db.findSubjectsByDepartment(req.user.departmentId);
+        const { studentIds } = req.body;
+        const subjectId = req.params.id;
 
-        const reports = [];
-        for (const subject of subjects) {
-            const marks = await db.findMarksBySubject(subject.id);
-            reports.push({
-                subject: { id: subject.id, name: subject.name, code: subject.code },
-                marks,
-            });
+        if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+            return res.status(400).json({ success: false, message: 'studentIds array is required.' });
         }
 
-        res.status(200).json({ success: true, data: reports });
-    } catch (error) {
-        next(error);
+        const subject = await db.findSubjectById(subjectId);
+        if (!subject) {
+            return res.status(404).json({ success: false, message: 'Subject not found.' });
+        }
+
+        const enrolled = await db.bulkEnrollStudents(subjectId, studentIds);
+
+        return res.status(201).json({
+            success: true,
+            message: `${enrolled.length} student(s) enrolled.`,
+            data: enrolled,
+        });
+    } catch (err) {
+        next(err);
     }
 };
+
+// ═══════════════════════════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * GET /api/hod/reports/attendance
+ * Query: subjectId, startDate, endDate, belowThreshold
+ */
+const getAttendanceReport = async (req, res, next) => {
+    try {
+        const deptId = await getHodDeptId(req.user.id);
+        const { subjectId, startDate, endDate, belowThreshold } = req.query;
+
+        const report = await db.getAttendanceReport({
+            departmentId: deptId,
+            subjectId: subjectId || null,
+            startDate: startDate || null,
+            endDate: endDate || null,
+            belowThreshold: belowThreshold ? Number(belowThreshold) : null,
+        });
+
+        return res.status(200).json({ success: true, data: report });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * GET /api/hod/reports/marks
+ */
+const getMarksReport = async (req, res, next) => {
+    try {
+        const deptId = await getHodDeptId(req.user.id);
+        const report = await db.getMarksReport(deptId);
+        return res.status(200).json({ success: true, data: report });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * GET /api/hod/reports/assignments
+ */
+const getAssignmentReport = async (req, res, next) => {
+    try {
+        const deptId = await getHodDeptId(req.user.id);
+        const report = await db.getAssignmentCompletionReport(deptId);
+        return res.status(200).json({ success: true, data: report });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * GET /api/hod/reports/staff-activity
+ */
+const getStaffActivityReport = async (req, res, next) => {
+    try {
+        const deptId = await getHodDeptId(req.user.id);
+        const report = await db.getStaffActivityReport(deptId);
+        return res.status(200).json({ success: true, data: report });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// LEAVE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
 
 /**
  * GET /api/hod/leaves
  */
 const getLeaves = async (req, res, next) => {
     try {
-        const { status } = req.query;
-        const leaves = await db.findLeavesByDepartment(req.user.departmentId, status || null);
-        res.status(200).json({ success: true, data: leaves });
-    } catch (error) {
-        next(error);
+        const deptId = await getHodDeptId(req.user.id);
+        const leaves = await db.findLeavesByDepartment(deptId);
+        return res.status(200).json({ success: true, data: leaves });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
  * PUT /api/hod/leaves/:id
+ * Body: { status: 'approved'|'rejected', reviewComment }
  */
-const approveOrRejectLeave = async (req, res, next) => {
+const reviewLeave = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const { status, remarks } = req.body;
+        const { status, reviewComment } = req.body;
 
-        if (!['approved', 'rejected'].includes(status)) {
-            throw createError('Status must be "approved" or "rejected".', 400);
+        if (!status || !['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Status must be "approved" or "rejected".',
+            });
         }
 
-        const leave = await db.updateLeaveStatus(id, {
+        const leave = await db.findLeaveById(req.params.id);
+        if (!leave) {
+            return res.status(404).json({ success: false, message: 'Leave request not found.' });
+        }
+
+        if (leave.status !== 'pending') {
+            return res.status(400).json({
+                success: false,
+                message: `This leave request has already been ${leave.status}.`,
+            });
+        }
+
+        const updated = await db.updateLeaveStatus(req.params.id, {
             status,
-            approvedBy: req.user.id,
-            remarks,
+            reviewedBy: req.user.id,
+            reviewComment,
         });
 
-        if (!leave) throw createError('Leave request not found.', 404);
-
-        res.status(200).json({ success: true, data: leave });
-    } catch (error) {
-        next(error);
+        return res.status(200).json({
+            success: true,
+            message: `Leave request ${status}.`,
+            data: updated,
+        });
+    } catch (err) {
+        next(err);
     }
 };
+
+// ═══════════════════════════════════════════════════════════════
+// ANNOUNCEMENTS
+// ═══════════════════════════════════════════════════════════════
 
 /**
  * POST /api/hod/announcements
+ * Body: { title, body, targetAudience, isPinned, sendEmail }
  */
 const createAnnouncement = async (req, res, next) => {
     try {
-        const { title, content, targetRole } = req.body;
+        const { title, body, targetAudience, isPinned, sendEmail } = req.body;
 
-        if (!title || !content) throw createError('Title and content are required.', 400);
+        const { valid, errors } = validateAnnouncement({ title, body, targetAudience });
+        if (!valid) {
+            return res.status(400).json({ success: false, message: 'Validation failed.', errors });
+        }
 
-        const user = await db.findUserById(req.user.id);
+        const deptId = await getHodDeptId(req.user.id);
+
         const announcement = await db.createAnnouncement({
             title,
-            content,
-            departmentId: user.department_id,
-            targetRole: targetRole || null,
-            createdBy: req.user.id,
+            body,
+            targetAudience,
+            postedBy: req.user.id,
+            subjectId: null,
+            departmentId: deptId,
+            isPinned: isPinned || false,
+            sendEmail: sendEmail || false,
         });
 
-        res.status(201).json({ success: true, data: announcement });
-    } catch (error) {
-        next(error);
+        return res.status(201).json({
+            success: true,
+            message: 'Announcement posted.',
+            data: announcement,
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * GET /api/hod/department-reports
+ * GET /api/hod/announcements
  */
-const getDepartmentReports = async (req, res, next) => {
+const getAnnouncements = async (req, res, next) => {
     try {
-        const stats = await db.getDepartmentStats(req.user.departmentId);
-        const subjects = await db.findSubjectsByDepartment(req.user.departmentId);
-        const staff = await db.findUsersByRole(ROLES.STAFF, req.user.departmentId);
-        const students = await db.findUsersByRole(ROLES.STUDENT, req.user.departmentId);
-
-        res.status(200).json({
-            success: true,
-            data: { stats, subjects, staff, students },
-        });
-    } catch (error) {
-        next(error);
+        const deptId = await getHodDeptId(req.user.id);
+        const announcements = await db.findAllAnnouncements(deptId);
+        return res.status(200).json({ success: true, data: announcements });
+    } catch (err) {
+        next(err);
     }
 };
 
 module.exports = {
     getDashboard,
+    // Staff management
     getStaff,
-    addStaff,
+    createStaff,
     updateStaff,
-    removeStaff,
+    // Student management
     getStudents,
-    addStudent,
+    createStudent,
     updateStudent,
-    removeStudent,
+    // Subjects
     getSubjects,
-    addSubject,
+    createSubject,
     updateSubject,
-    removeSubject,
-    getAttendanceReports,
-    getMarksReports,
+    bulkEnroll,
+    // Reports
+    getAttendanceReport,
+    getMarksReport,
+    getAssignmentReport,
+    getStaffActivityReport,
+    // Leaves
     getLeaves,
-    approveOrRejectLeave,
+    reviewLeave,
+    // Announcements
     createAnnouncement,
-    getDepartmentReports,
+    getAnnouncements,
 };

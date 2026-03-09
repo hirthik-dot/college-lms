@@ -9,6 +9,7 @@ if (!JWT_SECRET) {
 
 /**
  * Express middleware — verify the Bearer token and attach `req.user`.
+ * Token payload: { id, role, full_name, username }
  */
 const authenticate = (req, res, next) => {
     try {
@@ -34,9 +35,9 @@ const authenticate = (req, res, next) => {
 
         req.user = {
             id: decoded.id,
-            email: decoded.email,
             role: decoded.role,
-            departmentId: decoded.departmentId,
+            full_name: decoded.full_name,
+            username: decoded.username,
         };
 
         next();

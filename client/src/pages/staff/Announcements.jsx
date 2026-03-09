@@ -13,9 +13,9 @@ import api from '../../utils/api';
 
 export default function StaffAnnouncements() {
     const [modalOpen, setModalOpen] = useState(false);
-    const [formData, setFormData] = useState({ title: '', content: '', targetRole: '' });
+    const [formData, setFormData] = useState({ title: '', body: '', targetAudience: '' });
 
-    const { data: announcements, isLoading, refetch } = useApiQuery('staff-announcements', '/announcements');
+    const { data: announcements, isLoading, refetch } = useApiQuery('staff-announcements', '/staff/announcements');
 
     const createMutation = useApiMutation('/staff/announcements', 'post', {
         invalidateKeys: [['staff-announcements']],
@@ -26,13 +26,13 @@ export default function StaffAnnouncements() {
         createMutation.mutate(
             {
                 title: formData.title,
-                content: formData.content,
-                targetRole: formData.targetRole || null,
+                body: formData.body,
+                targetAudience: formData.targetAudience || 'all',
             },
             {
                 onSuccess: () => {
                     setModalOpen(false);
-                    setFormData({ title: '', content: '', targetRole: '' });
+                    setFormData({ title: '', body: '', targetAudience: '' });
                     alert('Announcement posted!');
                     refetch();
                 },
@@ -44,7 +44,7 @@ export default function StaffAnnouncements() {
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this announcement?')) return;
         try {
-            await api.delete(`/announcements/${id}`);
+            await api.delete(`/staff/announcements/${id}`);
             refetch();
         } catch (err) {
             alert('Failed to delete.');
@@ -74,15 +74,15 @@ export default function StaffAnnouncements() {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="text-base font-semibold text-surface-900">{ann.title}</h3>
-                                        <p className="text-sm text-surface-600 mt-2 whitespace-pre-wrap">{ann.content}</p>
+                                        <p className="text-sm text-surface-600 mt-2 whitespace-pre-wrap">{ann.body}</p>
                                         <div className="flex items-center gap-3 mt-3 text-2xs text-surface-500">
-                                            <span>By {ann.author_name}</span>
+                                            <span>By {ann.posted_by_name}</span>
                                             <span>·</span>
                                             <span>{formatDateTime(ann.created_at)}</span>
-                                            {ann.target_role && (
+                                            {ann.target_audience && ann.target_audience !== 'all' && (
                                                 <>
                                                     <span>·</span>
-                                                    <Badge size="sm" variant="info" className="capitalize">Target: {ann.target_role}</Badge>
+                                                    <Badge size="sm" variant="info" className="capitalize">Target: {ann.target_audience}</Badge>
                                                 </>
                                             )}
                                         </div>
@@ -115,8 +115,8 @@ export default function StaffAnnouncements() {
                             <textarea
                                 required
                                 className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm min-h-[120px]"
-                                value={formData.content}
-                                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                value={formData.body}
+                                onChange={(e) => setFormData({ ...formData, body: e.target.value })}
                                 placeholder="Message body..."
                                 rows={4}
                             />
@@ -124,8 +124,8 @@ export default function StaffAnnouncements() {
                         <div>
                             <label className="block text-sm font-medium text-surface-700 mb-1">Target Audience (Optional)</label>
                             <select
-                                value={formData.targetRole}
-                                onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
+                                value={formData.targetAudience}
+                                onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
                                 className="w-full px-3 py-2 rounded-lg border border-surface-300 text-sm focus:ring-2 focus:ring-primary-500"
                             >
                                 <option value="">All (Staff & Students)</option>

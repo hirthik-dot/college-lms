@@ -1,78 +1,116 @@
 const db = require('../models/db');
-const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
 const { comparePassword } = require('../utils/bcrypt');
+const { generateAccessToken } = require('../utils/jwt');
 const { validateLogin } = require('../utils/validators');
-const { createError } = require('../middleware/errorHandler');
 
 /**
  * POST /api/auth/login
+ * Body: { username, password }
  */
 const login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { username, password } = req.body;
 
-        const validation = validateLogin({ email, password });
-        if (!validation.valid) {
-            return res.status(400).json({ success: false, errors: validation.errors });
+        // Validate input
+        const { valid, errors } = validateLogin({ username, password });
+        if (!valid) {
+            return res.status(400).json({ success: false, message: 'Validation failed.', errors });
         }
 
-        const user = await db.findUserByEmail(email.toLowerCase().trim());
+        // Find user by username
+        const user = await db.findUserByUsername(username.trim());
         if (!user) {
-            return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid username or password.',
+            });
         }
 
-        const isPasswordValid = await comparePassword(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+        // Check active status
+        if (!user.is_active) {
+            return res.status(401).json({
+                success: false,
+                message: 'Your account has been deactivated. Contact your administrator.',
+            });
         }
 
-        const tokenPayload = {
+        // Verify password
+        const isMatch = await comparePassword(password, user.password_hash);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid username or password.',
+            });
+        }
+
+        // Generate JWT (8 h expiry)
+        const token = generateAccessToken({
             id: user.id,
-            email: user.email,
             role: user.role,
-            departmentId: user.department_id,
-        };
+            full_name: user.full_name,
+            username: user.username,
+        });
 
-        const accessToken = generateAccessToken(tokenPayload);
-        const refreshToken = generateRefreshToken({ id: user.id });
-
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: 'Login successful.',
-            data: {
-                user: {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    departmentId: user.department_id,
-                },
-                accessToken,
-                refreshToken,
+            token,
+            user: {
+                id: user.id,
+                role: user.role,
+                full_name: user.full_name,
+                username: user.username,
+                profile_photo_url: user.profile_photo_url,
             },
         });
-    } catch (error) {
-        next(error);
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
+ * POST /api/auth/logout
+ * Client-side token invalidation — just return success.
+ */
+const logout = async (req, res) => {
+    return res.status(200).json({
+        success: true,
+        message: 'Logged out successfully. Please discard the token.',
+    });
+};
+
+/**
  * GET /api/auth/me
+ * Returns the current user from the JWT.
  */
 const getProfile = async (req, res, next) => {
     try {
         const user = await db.findUserById(req.user.id);
         if (!user) {
-            throw createError('User not found.', 404);
+            return res.status(404).json({
+                success: false,
+                message: 'User not found.',
+            });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
-            data: user,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                role: user.role,
+                full_name: user.full_name,
+                profile_photo_url: user.profile_photo_url,
+                department_id: user.department_id,
+                phone: user.phone,
+                is_active: user.is_active,
+                created_at: user.created_at,
+            },
         });
-    } catch (error) {
-        next(error);
+    } catch (err) {
+        next(err);
     }
 };
 
-module.exports = { login, getProfile };
+module.exports = { login, logout, getProfile };

@@ -3,6 +3,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const path = require('path');
+const fs = require('fs');
 const morgan = require('morgan');
 
 const { errorHandler } = require('./src/middleware/errorHandler');
@@ -13,11 +15,7 @@ const studentRoutes = require('./src/routes/students');
 const staffRoutes = require('./src/routes/staff');
 const hodRoutes = require('./src/routes/hod');
 const subjectRoutes = require('./src/routes/subjects');
-const attendanceRoutes = require('./src/routes/attendance');
-const assignmentRoutes = require('./src/routes/assignments');
-const marksRoutes = require('./src/routes/marks');
-const announcementRoutes = require('./src/routes/announcements');
-const leaveRoutes = require('./src/routes/leaves');
+const coursePlanRoutes = require('./src/routes/coursePlan');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -60,15 +58,28 @@ app.get('/api/health', (req, res) => {
 
 // ─── API Routes ─────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
-app.use('/api/students', studentRoutes);
+app.use('/api/student', studentRoutes);
+app.use('/api/students', studentRoutes);  // frontend uses plural
+app.use('/api/subjects', subjectRoutes);  // standalone subjects endpoint
 app.use('/api/staff', staffRoutes);
 app.use('/api/hod', hodRoutes);
-app.use('/api/subjects', subjectRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/assignments', assignmentRoutes);
-app.use('/api/marks', marksRoutes);
-app.use('/api/announcements', announcementRoutes);
-app.use('/api/leaves', leaveRoutes);
+
+// ─── Course Plan Routes ─────────────────────────────────────
+const { authenticate } = require('./src/middleware/auth');
+const { authorize } = require('./src/middleware/roles');
+app.use('/api/faculty/course-plan', authenticate, authorize('staff'), coursePlanRoutes.faculty);
+app.use('/api/hod/course-plan', authenticate, authorize('hod'), coursePlanRoutes.hod);
+app.use('/api/student/materials', authenticate, authorize('student'), coursePlanRoutes.student);
+app.use('/api/student/notifications', authenticate, authorize('student'), coursePlanRoutes.notifications);
+
+// ─── Serve uploaded files statically ────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Ensure upload directories exist
+['uploads/course-plans', 'uploads/proof-images', 'uploads/topic-materials'].forEach(dir => {
+  const fullPath = path.join(__dirname, dir);
+  if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
+});
 
 // ─── 404 Handler ────────────────────────────────────────────
 app.use((req, res) => {

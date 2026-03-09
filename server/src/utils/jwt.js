@@ -1,21 +1,22 @@
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '30d';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
+const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
 /**
- * Generate an access token.
- * @param {{ id: number, email: string, role: string, departmentId?: number }} payload
+ * Generate an access token (8 h default).
+ * Payload contains: id, role, full_name, username
+ * @param {{ id: number, role: string, full_name: string, username: string }} payload
  * @returns {string}
  */
 const generateAccessToken = (payload) => {
     return jwt.sign(
         {
             id: payload.id,
-            email: payload.email,
             role: payload.role,
-            departmentId: payload.departmentId,
+            full_name: payload.full_name,
+            username: payload.username,
         },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES_IN }

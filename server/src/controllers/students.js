@@ -1,128 +1,202 @@
 const db = require('../models/db');
-const { createError } = require('../middleware/errorHandler');
 
 /**
- * GET /api/students/dashboard
+ * GET /api/student/dashboard
+ * Today's subjects, pending assignments, recent announcements
  */
 const getDashboard = async (req, res, next) => {
     try {
-        const user = await db.findUserById(req.user.id);
-        if (!user) throw createError('Student not found.', 404);
+        const studentId = req.user.id;
 
-        const subjects = await db.findSubjectsByDepartment(user.department_id);
-        const announcements = await db.findAnnouncements(user.department_id, 'student');
+        const dashData = await db.getStudentDashboardData(studentId);
+        const user = await db.findUserById(studentId);
 
-        res.status(200).json({
-            success: true,
-            data: { user, subjects, announcements },
+        // Recent announcements (top 5)
+        const announcements = await db.findAnnouncements({
+            departmentId: user.department_id,
+            role: 'student',
         });
-    } catch (error) {
-        next(error);
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                subjects: dashData.subjects,
+                pendingAssignments: dashData.pendingAssignments,
+                announcements: announcements.slice(0, 5),
+            },
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * GET /api/students/attendance
+ * GET /api/student/subjects
+ * All enrolled subjects with staff name
+ */
+const getSubjects = async (req, res, next) => {
+    try {
+        const subjects = await db.findEnrolledSubjects(req.user.id);
+        return res.status(200).json({ success: true, data: subjects });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * GET /api/student/attendance
+ * Attendance percentage per subject + overall summary
  */
 const getAttendance = async (req, res, next) => {
     try {
-        const { subjectId } = req.query;
-        const records = await db.findAttendanceByStudent(req.user.id, subjectId || null);
-
-        let summary = null;
-        if (subjectId) {
-            summary = await db.getAttendanceSummary(req.user.id, subjectId);
-        }
-
-        res.status(200).json({ success: true, data: { records, summary } });
-    } catch (error) {
-        next(error);
+        const summary = await db.getStudentAttendanceSummary(req.user.id);
+        return res.status(200).json({ success: true, data: summary });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * GET /api/students/assignments
+ * GET /api/student/attendance/:subjectId
+ * Detailed attendance for a specific subject
+ */
+const getAttendanceBySubject = async (req, res, next) => {
+    try {
+        const { subjectId } = req.params;
+        const detail = await db.getStudentAttendanceDetail(req.user.id, subjectId);
+        const summary = await db.getStudentAttendanceSummary(req.user.id);
+        const subjectSummary = summary.find((s) => String(s.subject_id) === String(subjectId));
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                summary: subjectSummary || null,
+                sessions: detail,
+            },
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * GET /api/student/assignments
+ * All assignments across enrolled subjects
  */
 const getAssignments = async (req, res, next) => {
     try {
-        const { subjectId } = req.query;
-        if (!subjectId) throw createError('Subject ID is required.', 400);
-
-        const assignments = await db.findAssignmentsBySubject(subjectId);
-        res.status(200).json({ success: true, data: assignments });
-    } catch (error) {
-        next(error);
+        const assignments = await db.findStudentAssignments(req.user.id);
+        return res.status(200).json({ success: true, data: assignments });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * POST /api/students/assignments/:id/submit
+ * GET /api/student/assignments/:id
+ * Single assignment detail
+ */
+const getAssignmentDetail = async (req, res, next) => {
+    try {
+        const assignment = await db.findAssignmentById(req.params.id);
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found.' });
+        }
+        return res.status(200).json({ success: true, data: assignment });
+    } catch (err) {
+        next(err);
+    }
+};
+
+/**
+ * POST /api/student/assignments/:id/submit
+ * Body: { fileUrl }
  */
 const submitAssignment = async (req, res, next) => {
     try {
-        const { id } = req.params;
-        const { content, fileUrl } = req.body;
+        const assignmentId = req.params.id;
+        const { fileUrl } = req.body;
 
-        const assignment = await db.findAssignmentById(id);
-        if (!assignment) throw createError('Assignment not found.', 404);
+        if (!fileUrl || !String(fileUrl).trim()) {
+            return res.status(400).json({ success: false, message: 'File URL is required.' });
+        }
+
+        // Check assignment exists
+        const assignment = await db.findAssignmentById(assignmentId);
+        if (!assignment) {
+            return res.status(404).json({ success: false, message: 'Assignment not found.' });
+        }
+
+        if (!assignment.is_active) {
+            return res.status(400).json({ success: false, message: 'This assignment is no longer active.' });
+        }
 
         const submission = await db.submitAssignment({
-            assignmentId: id,
+            assignmentId,
             studentId: req.user.id,
-            content,
-            fileUrl,
+            fileUrl: fileUrl.trim(),
         });
 
-        res.status(201).json({ success: true, data: submission });
-    } catch (error) {
-        next(error);
+        return res.status(201).json({
+            success: true,
+            message: submission.is_late ? 'Assignment submitted (late).' : 'Assignment submitted successfully.',
+            data: submission,
+        });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * GET /api/students/marks
+ * GET /api/student/marks
+ * All published assessment marks
  */
 const getMarks = async (req, res, next) => {
     try {
-        const marks = await db.findMarksByStudent(req.user.id);
-        res.status(200).json({ success: true, data: marks });
-    } catch (error) {
-        next(error);
+        const marks = await db.findStudentMarks(req.user.id);
+        return res.status(200).json({ success: true, data: marks });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * GET /api/students/content
+ * GET /api/student/content/:subjectId
+ * Study materials for a subject (visible only)
  */
 const getContent = async (req, res, next) => {
     try {
-        const { subjectId } = req.query;
-        if (!subjectId) throw createError('Subject ID is required.', 400);
-
-        const content = await db.findContentBySubject(subjectId);
-        res.status(200).json({ success: true, data: content });
-    } catch (error) {
-        next(error);
+        const content = await db.findContentBySubject(req.params.subjectId, true);
+        return res.status(200).json({ success: true, data: content });
+    } catch (err) {
+        next(err);
     }
 };
 
 /**
- * GET /api/students/announcements
+ * GET /api/student/announcements
+ * All announcements relevant to students
  */
 const getAnnouncements = async (req, res, next) => {
     try {
         const user = await db.findUserById(req.user.id);
-        const announcements = await db.findAnnouncements(user.department_id, 'student');
-        res.status(200).json({ success: true, data: announcements });
-    } catch (error) {
-        next(error);
+        const announcements = await db.findAnnouncements({
+            departmentId: user.department_id,
+            role: 'student',
+        });
+        return res.status(200).json({ success: true, data: announcements });
+    } catch (err) {
+        next(err);
     }
 };
 
 module.exports = {
     getDashboard,
+    getSubjects,
     getAttendance,
+    getAttendanceBySubject,
     getAssignments,
+    getAssignmentDetail,
     submitAssignment,
     getMarks,
     getContent,
