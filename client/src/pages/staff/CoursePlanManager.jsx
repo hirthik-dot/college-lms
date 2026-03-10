@@ -246,21 +246,36 @@ export default function CoursePlanManager() {
                                     )}
                                 </button>
 
-                                {/* Topic Cards */}
+                                {/* Topic Table */}
                                 {isExpanded(unit.unitName) && (
-                                    <div className="px-4 pb-4 grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                        {unit.topics.map((topic) => (
-                                            <TopicCard
-                                                key={topic.id}
-                                                topic={topic}
-                                                onSubmitReport={() => navigate(`/staff/course-plan/submit/${topic.id}`)}
-                                                onToggleMaterials={() => setMaterialPanel(materialPanel === topic.id ? null : topic.id)}
-                                                onToggleReport={() => setViewReportPanel(viewReportPanel === topic.id ? null : topic.id)}
-                                                showMaterialPanel={materialPanel === topic.id}
-                                                showReportPanel={viewReportPanel === topic.id}
-                                                onMaterialAdded={refetchPlan}
-                                            />
-                                        ))}
+                                    <div className="overflow-x-auto border-t border-gray-200 mt-0 rounded-b-2xl border-x bg-white">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-[#1f2937] text-white text-sm">
+                                                    <th className="px-3 py-3 font-semibold border-r border-[#374151] text-center w-14">S.No</th>
+                                                    <th className="px-4 py-3 font-semibold border-r border-[#374151]">Name of the topic</th>
+                                                    <th className="px-4 py-3 font-semibold border-r border-[#374151] w-32 text-center">Reference book</th>
+                                                    <th className="px-4 py-3 font-semibold border-r border-[#374151] w-56">Teaching aids & methods</th>
+                                                    <th className="px-3 py-3 font-semibold border-r border-[#374151] text-center w-36">Course Outcome / Bloom's</th>
+                                                    <th className="px-3 py-3 font-semibold border-r border-[#374151] text-center w-28">Status</th>
+                                                    <th className="px-3 py-3 font-semibold text-center w-32 border-[#374151]">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-200">
+                                                {unit.topics.map((topic) => (
+                                                    <TopicTableRow
+                                                        key={topic.id}
+                                                        topic={topic}
+                                                        onSubmitReport={() => navigate(`/staff/course-plan/submit/${topic.id}`)}
+                                                        onToggleMaterials={() => setMaterialPanel(materialPanel === topic.id ? null : topic.id)}
+                                                        onToggleReport={() => setViewReportPanel(viewReportPanel === topic.id ? null : topic.id)}
+                                                        showMaterialPanel={materialPanel === topic.id}
+                                                        showReportPanel={viewReportPanel === topic.id}
+                                                        onMaterialAdded={refetchPlan}
+                                                    />
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 )}
                             </div>
@@ -272,92 +287,76 @@ export default function CoursePlanManager() {
     );
 }
 
-// ─── Topic Card Component ────────────────────────────────────
+// ─── Topic Table Row Component ────────────────────────────────────
 
-function TopicCard({ topic, onSubmitReport, onToggleMaterials, onToggleReport, showMaterialPanel, showReportPanel, onMaterialAdded }) {
-    const coColors = {
-        'CO1': 'bg-blue-100 text-blue-700',
-        'CO2': 'bg-purple-100 text-purple-700',
-        'CO3': 'bg-pink-100 text-pink-700',
-        'CO4': 'bg-amber-100 text-amber-700',
-        'CO5': 'bg-teal-100 text-teal-700',
-        'CO6': 'bg-red-100 text-red-700',
-    };
-
-    const coKey = (topic.co_bloom || '').split('/')[0]?.trim()?.toUpperCase();
-    const coColor = coColors[coKey] || 'bg-gray-100 text-gray-600';
+function TopicTableRow({ topic, onSubmitReport, onToggleMaterials, onToggleReport, showMaterialPanel, showReportPanel, onMaterialAdded }) {
     const isCompleted = topic.status === 'completed';
 
     return (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow">
-            {/* Top row: badges */}
-            <div className="flex items-center gap-2 flex-wrap mb-2">
-                <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-lg">
-                    #{topic.sno}
-                </span>
-                {topic.co_bloom && (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${coColor}`}>
-                        {topic.co_bloom}
+        <>
+            <tr className="hover:bg-gray-50 bg-white transition-colors">
+                <td className="px-3 py-3 border-r border-b border-gray-200 text-center font-medium text-gray-900">{topic.sno}</td>
+                <td className="px-4 py-3 border-r border-b border-gray-200 text-sm text-gray-900">
+                    <div className="font-semibold leading-relaxed">{topic.topic_name}</div>
+                    <div className="text-xs text-gray-500 mt-2 flex items-center gap-1.5 font-medium bg-gray-100 inline-flex px-2 py-1 rounded-md border border-gray-200">
+                        <Paperclip className="w-3.5 h-3.5" />
+                        {topic.materials_count || 0} materials
+                    </div>
+                </td>
+                <td className="px-4 py-3 border-r border-b border-gray-200 text-sm text-gray-700 font-medium text-center">
+                    {topic.reference_book || '-'}
+                </td>
+                <td className="px-4 py-3 border-r border-b border-gray-200 text-sm text-gray-700 leading-relaxed">
+                    {topic.teaching_method || '-'}
+                </td>
+                <td className="px-3 py-3 border-r border-b border-gray-200 text-center text-sm font-semibold text-gray-700">
+                    {topic.co_bloom || '-'}
+                </td>
+                <td className="px-3 py-3 border-r border-b border-gray-200 text-center">
+                    <span className={`inline-flex px-2.5 py-1.5 text-xs font-bold rounded-lg border ${isCompleted ? 'bg-green-50 text-green-700 border-green-200 shadow-sm' : 'bg-gray-50 text-gray-600 border-gray-200 shadow-sm'}`}>
+                        {isCompleted ? 'Completed' : 'Pending'}
                     </span>
-                )}
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isCompleted ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500 border border-gray-200'
-                    }`}>
-                    {isCompleted ? '✓ Completed' : 'Pending'}
-                </span>
-            </div>
-
-            {/* Topic name */}
-            <h4 className="font-semibold text-gray-900 text-[15px] leading-snug mb-1">{topic.topic_name}</h4>
-
-            {/* Meta */}
-            {topic.teaching_method && (
-                <p className="text-xs text-gray-500">{topic.teaching_method}</p>
-            )}
-            {topic.reference_book && (
-                <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                    <BookOpen className="w-3 h-3" /> {topic.reference_book}
-                </p>
-            )}
-
-            {/* Bottom row */}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                    <Paperclip className="w-3.5 h-3.5" />
-                    {topic.materials_count || 0} materials
-                </span>
-                <div className="flex items-center gap-2">
-                    {isCompleted ? (
-                        <button
-                            onClick={onToggleReport}
-                            className="text-xs font-medium text-green-600 hover:text-green-700 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-green-50 transition-colors"
-                        >
-                            <Eye className="w-3.5 h-3.5" /> View Report
-                        </button>
-                    ) : (
-                        <>
+                </td>
+                <td className="px-2 py-3 border-b border-gray-200 text-center align-middle">
+                    <div className="flex flex-col gap-2 px-2">
+                        {isCompleted ? (
                             <button
-                                onClick={onToggleMaterials}
-                                className="text-xs font-medium text-gray-600 hover:text-gray-700 flex items-center gap-1 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                                onClick={onToggleReport}
+                                className="text-xs font-bold text-green-700 bg-green-50 hover:bg-green-100 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-colors border border-green-200 w-full shadow-sm"
                             >
-                                <Plus className="w-3.5 h-3.5" /> Add Materials
+                                <Eye className="w-4 h-4" /> View Report
                             </button>
-                            <button
-                                onClick={onSubmitReport}
-                                className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                                Submit Report
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-
-            {/* Material Panel */}
-            {showMaterialPanel && <MaterialPanel topicId={topic.id} onAdded={onMaterialAdded} />}
-
-            {/* Report Panel */}
-            {showReportPanel && isCompleted && <ReportPanel topicId={topic.id} />}
-        </div>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={onToggleMaterials}
+                                    className="text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg transition-colors border border-gray-300 w-full shadow-sm"
+                                >
+                                    <Plus className="w-4 h-4" /> Materials
+                                </button>
+                                <button
+                                    onClick={onSubmitReport}
+                                    className="text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg transition-colors w-full shadow-sm"
+                                >
+                                    Submit
+                                </button>
+                            </>
+                        )}
+                    </div>
+                </td>
+            </tr>
+            {/* Expanded panels for materials or report */}
+            {(showMaterialPanel || showReportPanel) && (
+                <tr className="bg-blue-50/40">
+                    <td colSpan="7" className="p-0 border-b border-blue-100 shadow-inner">
+                        <div className="px-8 py-5">
+                            {showMaterialPanel && <MaterialPanel topicId={topic.id} onAdded={onMaterialAdded} />}
+                            {showReportPanel && isCompleted && <ReportPanel topicId={topic.id} />}
+                        </div>
+                    </td>
+                </tr>
+            )}
+        </>
     );
 }
 
