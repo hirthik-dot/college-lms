@@ -1,0 +1,244 @@
+Warning: Cannot polyfill `DOMMatrix`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- D:\ProjectsD\lms\college-lms\server\node_modules\pdfjs-dist\legacy\build\pdf.js
+- D:\ProjectsD\lms\college-lms\server\src\services\timetableParser.js
+- D:\ProjectsD\lms\college-lms\server\test_seed.js".
+Warning: Cannot polyfill `Path2D`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- D:\ProjectsD\lms\college-lms\server\node_modules\pdfjs-dist\legacy\build\pdf.js
+- D:\ProjectsD\lms\college-lms\server\src\services\timetableParser.js
+- D:\ProjectsD\lms\college-lms\server\test_seed.js".
+📦 PostgreSQL pool — new client connected
+Starting class timetable derivation...
+📦 PostgreSQL pool — new client connected
+Seed Report: {
+  success: false,
+  uploadId: 34,
+  error: 'current transaction is aborted, commands ignored until end of transaction block',
+  staffCreated: 0,
+  staffUpdated: 31,
+  classesCreated: 18,
+  subjectsCreated: 0,
+  slotsCreated: 524,
+  assignmentsCreated: 116,
+  errors: [],
+  staffGmails: [
+    {
+      name: 'Dr.A.Jameer Basha',
+      gmail: 'jameer.basha@gmail.com',
+      staffCode: 'CSE001',
+      isHod: true
+    },
+    {
+      name: 'Dr.S.Ramasamy',
+      gmail: 's.ramasamy@gmail.com',
+      staffCode: 'CSE002',
+      isHod: false
+    },
+    {
+      name: 'Dr.N.B.Mahesh Kumar',
+      gmail: 'mahesh.kumar@gmail.com',
+      staffCode: 'CSE003',
+      isHod: false
+    },
+    {
+      name: 'Mr.P.Suresh Kumar',
+      gmail: 'suresh.kumar@gmail.com',
+      staffCode: 'CSE004',
+      isHod: false
+    },
+    {
+      name: 'Ms.D.Vidhya',
+      gmail: 'd.vidhya@gmail.com',
+      staffCode: 'CSE005',
+      isHod: false
+    },
+    {
+      name: 'Mr.P.N. Periyasamy',
+      gmail: 'p.periyasamy@gmail.com',
+      staffCode: 'CSE006',
+      isHod: false
+    },
+    {
+      name: 'Mr.M. Devendran',
+      gmail: 'm.devendran@gmail.com',
+      staffCode: 'CSE007',
+      isHod: false
+    },
+    {
+      name: 'Ms. C.E . Rajaprabha',
+      gmail: 'c.rajaprabha@gmail.com',
+      staffCode: 'CSE008',
+      isHod: false
+    },
+    {
+      name: 'Ms.M.Banupriya',
+      gmail: 'm.banupriya@gmail.com',
+      staffCode: 'CSE009',
+      isHod: false
+    },
+    {
+      name: 'Dr.R.Senthil Kumar',
+      gmail: 'senthil.kumar@gmail.com',
+      staffCode: 'CSE010',
+      isHod: false
+    },
+    {
+      name: 'Ms. A. Nisha Nandhini',
+      gmail: 'nisha.nandhini@gmail.com',
+      staffCode: 'CSE011',
+      isHod: false
+    },
+    {
+      name: 'Mr.J Uthaya kumar',
+      gmail: 'uthaya.kumar@gmail.com',
+      staffCode: 'CSE012',
+      isHod: false
+    },
+    {
+      name: 'Mr. S. Jaya Prakash',
+      gmail: 'jaya.prakash@gmail.com',
+      staffCode: 'CSE013',
+      isHod: false
+    },
+    {
+      name: 'Mr. T. Udhaya Kumar',
+      gmail: 'udhaya.kumar@gmail.com',
+      staffCode: 'CSE014',
+      isHod: false
+    },
+    {
+      name: 'Ms. N. Abinaya',
+      gmail: 'n.abinaya@gmail.com',
+      staffCode: 'CSE015',
+      isHod: false
+    },
+    {
+      name: 'Ms.J.Pavithra',
+      gmail: 'j.pavithra@gmail.com',
+      staffCode: 'CSE016',
+      isHod: false
+    },
+    {
+      name: 'Mr.Johny Sebastin',
+      gmail: 'johny.sebastin@gmail.com',
+      staffCode: 'CSE017',
+      isHod: false
+    },
+    {
+      name: 'Dr .N.Mookhambika',
+      gmail: 'dr.mookhambika@gmail.com',
+      staffCode: 'CSE018',
+      isHod: false
+    },
+    {
+      name: 'Ms.Libi Sharon',
+      gmail: 'libi.sharon@gmail.com',
+      staffCode: 'CSE019',
+      isHod: false
+    },
+    {
+      name: 'Ms.Suganthi.D',
+      gmail: 'suganthi.d@gmail.com',
+      staffCode: 'CSE020',
+      isHod: false
+    },
+    {
+      name: 'Ms.Ramalakshmi.B',
+      gmail: 'ramalakshmi.b@gmail.com',
+      staffCode: 'CSE021',
+      isHod: false
+    },
+    {
+      name: 'Ms.A.Praveena',
+      gmail: 'a.praveena@gmail.com',
+      staffCode: 'CSE022',
+      isHod: false
+    },
+    {
+      name: 'M s.Priyanka.V',
+      gmail: 'm.priyanka@gmail.com',
+      staffCode: 'CSE023',
+      isHod: false
+    },
+    {
+      name: 'Ms.R.Kaviya',
+      gmail: 'r.kaviya@gmail.com',
+      staffCode: 'CSE024',
+      isHod: false
+    },
+    {
+      name: 'Dr.V.Balaji shanmugam',
+      gmail: 'balaji.shanmugam@gmail.com',
+      staffCode: 'CSE025',
+      isHod: false
+    },
+    {
+      name: 'M s.M.Shyamala',
+      gmail: 'm.shyamala@gmail.com',
+      staffCode: 'CSE026',
+      isHod: false
+    },
+    {
+      name: 'Mr. P.Palanisamy',
+      gmail: 'p.palanisamy@gmail.com',
+      staffCode: 'CSE027',
+      isHod: false
+    },
+    {
+      name: 'Mr. A.Ganesan',
+      gmail: 'a.ganesan@gmail.com',
+      staffCode: 'CSE028',
+      isHod: false
+    },
+    {
+      name: 'Ms. N. Saranya',
+      gmail: 'n.saranya@gmail.com',
+      staffCode: 'CSE029',
+      isHod: false
+    },
+    {
+      name: 'Dr.R.T.Subha Lakshmi',
+      gmail: 'subha.lakshmi@gmail.com',
+      staffCode: 'CSE030',
+      isHod: false
+    },
+    {
+      name: 'Mr.K.Murugan',
+      gmail: 'k.murugan@gmail.com',
+      staffCode: 'CSE031',
+      isHod: false
+    }
+  ]
+}
+Seed done. Running Verifications...
+  🔍 query {
+  text: 'SELECT DISTINCT name FROM classes ORDER BY name',
+  duration: '1ms',
+  rows: 0
+}
+1. Classes: 
+  🔍 query {
+  text: 'SELECT COUNT(*) as count FROM class_timetable_slots cts JOIN classes c ON c.id =',
+  duration: '1ms',
+  rows: 1
+}
+2. II CSE B Slots: 0
+  🔍 query {
+  text: 'SELECT DISTINCT s.full_name FROM class_timetable_slots cts JOIN classes c ON c.i',
+  duration: '1ms',
+  rows: 0
+}
+3. II CSE B Faculty: 
+  🔍 query {
+  text: 'SELECT c.name, COUNT(*) as slots FROM class_timetable_slots cts JOIN classes c O',
+  duration: '1ms',
+  rows: 0
+}
+4. Classes < 15 slots: []
+  🔍 query {
+  text: 'SELECT COUNT(*) as c FROM classes WHERE name LIKE $1 OR name LIKE $2 OR name LIK',
+  duration: '0ms',
+  rows: 1
+}
+5. Garbage Classes Count: 0

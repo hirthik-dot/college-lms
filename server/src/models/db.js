@@ -15,6 +15,11 @@ const findUserByUsername = async (username) => {
     return result.rows[0] || null;
 };
 
+const findUserByGmail = async (gmail) => {
+    const result = await query('SELECT * FROM users WHERE gmail = $1', [gmail]);
+    return result.rows[0] || null;
+};
+
 const findUserByEmail = async (email) => {
     const result = await query('SELECT * FROM users WHERE email = $1', [email]);
     return result.rows[0] || null;
@@ -871,6 +876,7 @@ const getStaffActivityReport = async (departmentId) => {
 module.exports = {
     // Users
     findUserByUsername,
+    findUserByGmail,
     findUserByEmail,
     findUserById,
     createUser,

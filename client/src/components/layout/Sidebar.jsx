@@ -32,6 +32,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                 { label: 'Attendance', path: '/student/attendance', icon: ClipboardList },
                 { label: 'Assignments', path: '/student/assignments', icon: FileText },
                 { label: 'Marks', path: '/student/marks', icon: GraduationCap },
+                { label: 'My Timetable', path: '/student/timetable', icon: CalendarClock },
                 { label: 'Announcements', path: '/student/announcements', icon: Megaphone },
             ];
         }
@@ -44,6 +45,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                 { label: 'Assignments', path: '/staff/assignments', icon: FileText },
                 { label: 'Course Plan', path: '/staff/course-plan', icon: BookOpen },
                 { label: 'Grade Book', path: '/staff/grades', icon: GraduationCap },
+                { label: 'My Timetable', path: '/staff/timetable', icon: CalendarClock },
                 { label: 'Leave Request', path: '/staff/leave', icon: CalendarClock },
                 { label: 'Announcements', path: '/staff/announcements', icon: Megaphone },
             ];
@@ -60,6 +62,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                 { label: 'Announcements', path: '/hod/announcements', icon: Megaphone },
                 { label: 'Department Reports', path: '/hod/reports/overall', icon: FileText },
                 { label: 'Course Plan Reports', path: '/hod/course-plan-reports', icon: ClipboardList },
+                { label: 'Timetable Management', path: '/hod/timetable', icon: CalendarClock },
             ];
         }
         return [];

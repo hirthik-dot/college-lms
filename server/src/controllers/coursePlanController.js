@@ -276,7 +276,9 @@ const submitTopicReport = async (req, res) => {
     try {
         const facultyId = req.user.id;
         const { topicId } = req.params;
-        const { whatWasCovered } = req.body;
+        const { whatWasCovered, teachingAids, teachingMethods,
+            ai_verified, ai_score, ai_flagged, ai_low_confidence,
+            ai_reason, ai_layer_scores, staff_confirmed_flag } = req.body;
 
         if (!whatWasCovered || whatWasCovered.trim().length < 20) {
             return res.status(400).json({
@@ -318,11 +320,25 @@ const submitTopicReport = async (req, res) => {
 
         await client.query('BEGIN');
 
-        // Insert hour report
+        // Insert hour report with AI verification data
         await client.query(
-            `INSERT INTO topic_hour_reports (topic_id, faculty_id, subject_id, what_was_covered, proof_image_url)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [topicId, facultyId, topic.subject_id, whatWasCovered.trim(), proofImageUrl]
+            `INSERT INTO topic_hour_reports
+             (topic_id, faculty_id, subject_id, what_was_covered, proof_image_url,
+              teaching_aids, teaching_methods,
+              ai_verified, ai_score, ai_flagged, ai_low_confidence,
+              ai_reason, ai_layer_scores, staff_confirmed_flag)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+            [
+                topicId, facultyId, topic.subject_id, whatWasCovered.trim(), proofImageUrl,
+                teachingAids || null, teachingMethods || null,
+                ai_verified === 'true' || ai_verified === true || false,
+                ai_score ? parseInt(ai_score) : null,
+                ai_flagged === 'true' || ai_flagged === true || false,
+                ai_low_confidence === 'true' || ai_low_confidence === true || false,
+                ai_reason || null,
+                ai_layer_scores ? (typeof ai_layer_scores === 'string' ? ai_layer_scores : JSON.stringify(ai_layer_scores)) : null,
+                staff_confirmed_flag === 'true' || staff_confirmed_flag === true || false,
+            ]
         );
 
         // Mark topic as completed
@@ -505,6 +521,33 @@ const deleteMaterial = async (req, res) => {
 // ═══════════════════════════════════════════════════════════════
 // HOD ENDPOINTS
 // ═══════════════════════════════════════════════════════════════
+
+/**
+ * PUT /api/hod/course-plan/reports/:reportId/review
+ * Mark a flagged/low-confidence report as manually reviewed by HOD.
+ */
+const markReportReviewed = async (req, res) => {
+    try {
+        const { reportId } = req.params;
+
+        const result = await query(
+            `UPDATE topic_hour_reports
+             SET ai_manually_reviewed = true
+             WHERE id = $1
+             RETURNING id, ai_manually_reviewed`,
+            [reportId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Report not found.' });
+        }
+
+        res.json({ success: true, data: result.rows[0], message: 'Report marked as reviewed.' });
+    } catch (error) {
+        console.error('markReportReviewed error:', error);
+        res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+};
 
 /**
  * GET /api/hod/course-plan/reports
@@ -803,6 +846,7 @@ module.exports = {
     deleteMaterial,
     getHodReports,
     getHodSummary,
+    markReportReviewed,
     getStudentMaterials,
     getStudentNotifications,
     markNotificationRead,

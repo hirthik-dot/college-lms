@@ -13,6 +13,7 @@ import StudentMarks from './pages/student/Marks';
 import StudentContent from './pages/student/Content';
 import StudentSubjects from './pages/student/Subjects';
 import StudentAnnouncements from './pages/student/Announcements';
+import StudentMyTimetable from './pages/student/MyTimetable';
 
 // Staff Pages
 import StaffDashboard from './pages/staff/Dashboard';
@@ -25,6 +26,7 @@ import StaffSubjects from './pages/staff/Subjects';
 import StaffAnnouncements from './pages/staff/Announcements';
 import CoursePlanManager from './pages/staff/CoursePlanManager';
 import SubmitHourReport from './pages/staff/SubmitHourReport';
+import StaffMyTimetable from './pages/staff/MyTimetable';
 
 // HOD Pages
 import HodDashboard from './pages/hod/Dashboard';
@@ -37,6 +39,7 @@ import HodLeaveApprovals from './pages/hod/LeaveApprovals';
 import HodAnnouncements from './pages/hod/Announcements';
 import HodDeptReports from './pages/hod/DeptReports';
 import CoursePlanReports from './pages/hod/CoursePlanReports';
+import HodTimetableManagement from './pages/hod/TimetableManagement';
 
 export default function App() {
     const { user, isAuthenticated, loading } = useAuth();
@@ -73,6 +76,7 @@ export default function App() {
                 <Route path="subjects" element={<StudentSubjects />} />
                 <Route path="content" element={<StudentContent />} />
                 <Route path="announcements" element={<StudentAnnouncements />} />
+                <Route path="timetable" element={<StudentMyTimetable />} />
             </Route>
 
             {/* Staff Routes */}
@@ -87,6 +91,7 @@ export default function App() {
                 <Route path="announcements" element={<StaffAnnouncements />} />
                 <Route path="course-plan" element={<CoursePlanManager />} />
                 <Route path="course-plan/submit/:topicId" element={<SubmitHourReport />} />
+                <Route path="timetable" element={<StaffMyTimetable />} />
             </Route>
 
             {/* HOD Routes */}
@@ -101,6 +106,7 @@ export default function App() {
                 <Route path="announcements" element={<HodAnnouncements />} />
                 <Route path="reports/overall" element={<HodDeptReports />} />
                 <Route path="course-plan-reports" element={<CoursePlanReports />} />
+                <Route path="timetable" element={<HodTimetableManagement />} />
             </Route>
 
             {/* 404 Fallback */}

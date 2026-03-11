@@ -1,0 +1,18 @@
+--- RUNNING TIMETABLE SEED TESTS ---
+📦 PostgreSQL pool — new client connected
+Test 1 - Ramasamy Slots: 13
+Test 2 - II CSE A Faculty count: 5
+  -> Dr.N.Mookhambika, Mr.T.Udhaya Kumar, Ms.D.Vidhya, Ms.Libi Sharon, Ms.Priyanka.V
+Test 3 - Classes with < 10 slots: 8
+[
+  { name: 'IV AI&DS', slot_count: '9' },
+  { name: 'II CSE C', slot_count: '3' },
+  { name: 'III AI&DS', slot_count: '5' },
+  { name: 'IV CSE B', slot_count: '8' },
+  { name: 'II AI&DS B', slot_count: '3' },
+  { name: 'III C', slot_count: '3' },
+  { name: 'II CSE A', slot_count: '3' },
+  { name: 'III CSE C', slot_count: '2' }
+]
+Test 4 - Total Practical Spans: 89
+Tests finished.

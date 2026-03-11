@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { parseApiError } from '../../utils/helpers';
-import { Lock, User, Loader2, Sparkles } from 'lucide-react';
+import { Lock, Mail, Loader2, Sparkles } from 'lucide-react';
 
 export default function Login() {
     const [identifier, setIdentifier] = useState('');
@@ -103,19 +103,21 @@ export default function Login() {
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-semibold text-gray-700 ml-1">Username / ID</label>
+                            <label className="text-sm font-semibold text-gray-700 ml-1">Email / Gmail</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <User className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                    <Mail className="w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                                 </div>
                                 <input
-                                    type="text"
+                                    type="email"
                                     required
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
                                     className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
-                                    placeholder="Enter your username"
-                                    autoComplete="username"
+                                    placeholder="yourname@gmail.com / .edu"
+                                    autoComplete="email"
+                                    pattern=".+@(gmail\.com|.*\.edu(\.in)?)$"
+                                    title="Please enter a valid gmail or .edu address"
                                 />
                             </div>
                         </div>
@@ -170,7 +172,7 @@ export default function Login() {
                         </p>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

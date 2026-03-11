@@ -1,0 +1,44 @@
+Warning: Cannot polyfill `DOMMatrix`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- D:\ProjectsD\lms\college-lms\server\node_modules\pdfjs-dist\legacy\build\pdf.js
+- D:\ProjectsD\lms\college-lms\server\src\services\timetableParser.js
+- D:\ProjectsD\lms\college-lms\server\test_seed.js".
+Warning: Cannot polyfill `Path2D`, rendering may be broken: "Error: Cannot find module 'canvas'
+Require stack:
+- D:\ProjectsD\lms\college-lms\server\node_modules\pdfjs-dist\legacy\build\pdf.js
+- D:\ProjectsD\lms\college-lms\server\src\services\timetableParser.js
+- D:\ProjectsD\lms\college-lms\server\test_seed.js".
+📦 PostgreSQL pool — new client connected
+Starting class timetable derivation...
+📦 PostgreSQL pool — new client connected
+Seed done. Running Verifications...
+  🔍 query {
+  text: 'SELECT DISTINCT name FROM classes ORDER BY name',
+  duration: '1ms',
+  rows: 0
+}
+1. Classes: 
+  🔍 query {
+  text: 'SELECT COUNT(*) as count FROM class_timetable_slots cts JOIN classes c ON c.id =',
+  duration: '1ms',
+  rows: 1
+}
+2. II CSE B Slots: 0
+  🔍 query {
+  text: 'SELECT DISTINCT s.full_name FROM class_timetable_slots cts JOIN classes c ON c.i',
+  duration: '0ms',
+  rows: 0
+}
+3. II CSE B Faculty: 
+  🔍 query {
+  text: 'SELECT c.name, COUNT(*) as slots FROM class_timetable_slots cts JOIN classes c O',
+  duration: '0ms',
+  rows: 0
+}
+4. Classes < 15 slots: []
+  🔍 query {
+  text: 'SELECT COUNT(*) as c FROM classes WHERE name LIKE $1 OR name LIKE $2 OR name LIK',
+  duration: '1ms',
+  rows: 1
+}
+5. Garbage Classes Count: 0

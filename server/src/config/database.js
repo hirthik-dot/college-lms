@@ -6,18 +6,19 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: isSSL ? { rejectUnauthorized: false } : false,
     min: parseInt(process.env.DB_POOL_MIN, 10) || 2,
-    max: parseInt(process.env.DB_POOL_MAX, 10) || 10,
+    max: parseInt(process.env.DB_POOL_MAX, 10) || 20,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 10000,
+    allowExitOnIdle: false
 });
 
 pool.on('connect', () => {
-    console.log('📦 PostgreSQL pool — new client connected');
+    // console.log('📦 PostgreSQL pool — new client connected');
 });
 
-pool.on('error', (err) => {
-    console.error('❌ PostgreSQL pool error:', err.message);
-    process.exit(1);
+pool.on('error', (err, client) => {
+  console.error('Unexpected PostgreSQL pool error:', err.message);
+  // Do NOT exit process — let pool reconnect automatically
 });
 
 /**

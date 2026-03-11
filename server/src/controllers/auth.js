@@ -5,24 +5,35 @@ const { validateLogin } = require('../utils/validators');
 
 /**
  * POST /api/auth/login
- * Body: { username, password }
+ * Body: { gmail, password } OR { username, password } for backward compat
  */
 const login = async (req, res, next) => {
     try {
-        const { username, password } = req.body;
+        const { gmail, username, password } = req.body;
+        const identifier = gmail || username;
 
         // Validate input
-        const { valid, errors } = validateLogin({ username, password });
+        const { valid, errors } = validateLogin({ username: identifier, password });
         if (!valid) {
             return res.status(400).json({ success: false, message: 'Validation failed.', errors });
         }
 
-        // Find user by username
-        const user = await db.findUserByUsername(username.trim());
+        // Try to find user by gmail first, then by username
+        let user = null;
+        if (gmail) {
+            user = await db.findUserByGmail(gmail.trim().toLowerCase());
+        }
+        if (!user && identifier) {
+            user = await db.findUserByUsername(identifier.trim());
+        }
+        if (!user && identifier) {
+            // Also try email field
+            user = await db.findUserByEmail(identifier.trim().toLowerCase());
+        }
         if (!user) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid username or password.',
+                message: 'Invalid gmail or password.',
             });
         }
 
@@ -49,6 +60,7 @@ const login = async (req, res, next) => {
             role: user.role,
             full_name: user.full_name,
             username: user.username,
+            gmail: user.gmail,
         });
 
         return res.status(200).json({
@@ -60,6 +72,7 @@ const login = async (req, res, next) => {
                 role: user.role,
                 full_name: user.full_name,
                 username: user.username,
+                gmail: user.gmail || user.email,
                 profile_photo_url: user.profile_photo_url,
             },
         });
@@ -98,6 +111,7 @@ const getProfile = async (req, res, next) => {
             user: {
                 id: user.id,
                 username: user.username,
+                gmail: user.gmail || user.email,
                 email: user.email,
                 role: user.role,
                 full_name: user.full_name,

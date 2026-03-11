@@ -16,8 +16,11 @@ const staffRoutes = require('./src/routes/staff');
 const hodRoutes = require('./src/routes/hod');
 const subjectRoutes = require('./src/routes/subjects');
 const coursePlanRoutes = require('./src/routes/coursePlan');
+const timetableRoutes = require('./src/routes/timetable');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first behind proxy/Nginx for rate limiter
+
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -72,11 +75,16 @@ app.use('/api/hod/course-plan', authenticate, authorize('hod'), coursePlanRoutes
 app.use('/api/student/materials', authenticate, authorize('student'), coursePlanRoutes.student);
 app.use('/api/student/notifications', authenticate, authorize('student'), coursePlanRoutes.notifications);
 
+// ─── Timetable Routes ───────────────────────────────────────
+app.use('/api/hod/timetable', authenticate, authorize('hod'), timetableRoutes.hod);
+app.use('/api/staff/timetable', authenticate, authorize('staff', 'hod'), timetableRoutes.staff);
+app.use('/api/student/timetable', authenticate, authorize('student'), timetableRoutes.student);
+
 // ─── Serve uploaded files statically ────────────────────────
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Ensure upload directories exist
-['uploads/course-plans', 'uploads/proof-images', 'uploads/topic-materials'].forEach(dir => {
+['uploads/course-plans', 'uploads/proof-images', 'uploads/topic-materials', 'uploads/timetables'].forEach(dir => {
   const fullPath = path.join(__dirname, dir);
   if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
 });

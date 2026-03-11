@@ -41,6 +41,7 @@ facultyRouter.get('/:subjectId', ctrl.getCoursePlan);
 const hodRouter = express.Router();
 
 hodRouter.get('/reports', ctrl.getHodReports);
+hodRouter.put('/reports/:reportId/review', ctrl.markReportReviewed);
 hodRouter.get('/summary', ctrl.getHodSummary);
 
 // ═══════════════════════════════════════════════════════════════

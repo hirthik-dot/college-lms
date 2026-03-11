@@ -1,0 +1,157 @@
+{
+  "success": false,
+  "uploadId": 20,
+  "error": "current transaction is aborted, commands ignored until end of transaction block",
+  "staffCreated": 0,
+  "staffUpdated": 9,
+  "classesCreated": 5,
+  "subjectsCreated": 8,
+  "slotsCreated": 154,
+  "assignmentsCreated": 46,
+  "errors": [
+    {
+      "staff": "Dr.R.Senthil Kumar",
+      "error": "duplicate key value violates unique constraint \"idx_staff_code\""
+    },
+    {
+      "staff": "Ms. A. Nisha Nandhini",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Mr.J Uthaya kumar",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Mr. S. Jaya Prakash",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Mr. T. Udhaya Kumar",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms. N. Abinaya",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms.J.Pavithra",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Mr.Johny Sebastin",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Dr .N.Mookhambika",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms.Libi Sharon",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms.Suganthi.D",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms.Ramalakshmi.B",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms.A.Praveena",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "M s.Priyanka.V",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms.R.Kaviya",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Dr.V.Balaji shanmugam",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "M s.M.Shyamala",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Mr. P.Palanisamy",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Mr. A.Ganesan",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Ms. N. Saranya",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Dr.R.T.Subha Lakshmi",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    },
+    {
+      "staff": "Mr.K.Murugan",
+      "error": "current transaction is aborted, commands ignored until end of transaction block"
+    }
+  ],
+  "staffGmails": [
+    {
+      "name": "Dr.A.Jameer Basha",
+      "gmail": "jameer.basha@gmail.com",
+      "staffCode": "CSE001",
+      "isHod": true
+    },
+    {
+      "name": "Dr.S.Ramasamy",
+      "gmail": "s.ramasamy@gmail.com",
+      "staffCode": "CSE002",
+      "isHod": false
+    },
+    {
+      "name": "Dr.N.B.Mahesh Kumar",
+      "gmail": "mahesh.kumar@gmail.com",
+      "staffCode": "CSE003",
+      "isHod": false
+    },
+    {
+      "name": "Mr.P.Suresh Kumar",
+      "gmail": "suresh.kumar@gmail.com",
+      "staffCode": "CSE004",
+      "isHod": false
+    },
+    {
+      "name": "Ms.D.Vidhya",
+      "gmail": "d.vidhya@gmail.com",
+      "staffCode": "CSE005",
+      "isHod": false
+    },
+    {
+      "name": "Mr.P.N. Periyasamy",
+      "gmail": "p.periyasamy@gmail.com",
+      "staffCode": "CSE006",
+      "isHod": false
+    },
+    {
+      "name": "Mr.M. Devendran",
+      "gmail": "m.devendran@gmail.com",
+      "staffCode": "CSE007",
+      "isHod": false
+    },
+    {
+      "name": "Ms. C.E . Rajaprabha",
+      "gmail": "c.rajaprabha@gmail.com",
+      "staffCode": "CSE008",
+      "isHod": false
+    },
+    {
+      "name": "Ms.M.Banupriya",
+      "gmail": "m.banupriya@gmail.com",
+      "staffCode": "CSE009",
+      "isHod": false
+    }
+  ]
+}

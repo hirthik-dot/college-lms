@@ -1,0 +1,30 @@
+Faculty Name:  Dr.S.Ramasamy, ASP/CSE       
+ 
+ 
+Hour 
+  Day  
+1 
+9.15-10.05 
+2 
+10.05-10.55 
+BREAK
+ 
+3 
+11.15-12.05 
+4 
+12.05-2.55 
+LUNCH  BREAK
+ 
+5 
+2.00-2.50 
+6 
+2.50-3.40 
+7 
+3.40-4.30 
+Monday  24AD401     22CS512 
+Tuesday 22CS512   24AD401→ TWM   
+Wednesday 22AD505→ 22CS512   24AD401 LIB 
+Thursday 24CS402→ 
+22CS512  
+24AD401   
+Friday    22CS512   

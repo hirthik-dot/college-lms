@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
     }, []);
 
     const login = useCallback(async (identifier, password) => {
-        const response = await api.post('/auth/login', { username: identifier, password });
+        const response = await api.post('/auth/login', { gmail: identifier, password });
 
         const receivedToken = response.data.token;
         const userData = response.data.user;
