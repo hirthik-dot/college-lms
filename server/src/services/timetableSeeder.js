@@ -361,10 +361,12 @@ async function ensureSubject(client, subj, deptId, staffId, report) {
 async function ensureClass(client, cls, report) {
     // Normalize name
     const name = cls.name.trim();
+    const academicYear = '2025-2026';
 
+    // Check for existing class (matching the partial unique index: name + academic_year + not deleted)
     const existing = await client.query(
-        'SELECT id FROM classes WHERE name = $1',
-        [name]
+        'SELECT id FROM classes WHERE name = $1 AND academic_year = $2 AND is_deleted = FALSE',
+        [name, academicYear]
     );
 
     if (existing.rows.length > 0) {
@@ -374,15 +376,13 @@ async function ensureClass(client, cls, report) {
     const yearInt = yearToInt(cls.year);
     const semester = yearToSemester(yearInt);
 
+    // Cannot use ON CONFLICT with the partial unique index (name, academic_year) WHERE is_deleted = FALSE
+    // so we use a plain INSERT since we already checked for duplicates above
     const result = await client.query(
-        `INSERT INTO classes (name, year, section, department, semester)
-         VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (name) DO UPDATE SET
-           year = EXCLUDED.year,
-           section = EXCLUDED.section,
-           department = EXCLUDED.department
+        `INSERT INTO classes (name, year, section, department, semester, academic_year, is_deleted)
+         VALUES ($1, $2, $3, $4, $5, $6, FALSE)
          RETURNING id`,
-        [name, yearInt, cls.section || '', cls.department || 'CSE', semester]
+        [name, yearInt, cls.section || '', cls.department || 'CSE', semester, academicYear]
     );
 
     report.classesCreated++;

@@ -4,32 +4,63 @@
 -- Passwords hashed with bcrypt cost factor 12
 -- ============================================================
 
+BEGIN;
+
+-- Clear all tables in reverse dependency order
+TRUNCATE TABLE 
+  audit_logs,
+  leave_requests,
+  announcements,
+  course_content,
+  assessment_marks,
+  assessments,
+  assignment_submissions,
+  assignments,
+  attendance_records,
+  attendance_sessions,
+  student_material_notifications,
+  topic_materials,
+  topic_hour_reports,
+  course_plan_topics,
+  course_plan_uploads,
+  class_timetable_slots,
+  faculty_timetable_slots,
+  staff_subject_assignments,
+  subject_enrollments,
+  student_profiles,
+  staff_profiles,
+  classes,
+  subjects,
+  departments,
+  users
+RESTART IDENTITY CASCADE;
+
 -- ────────────────────────────────────────────────────────────
 -- 1. USERS  (1 HOD + 3 Staff + 10 Students = 14 users)
 -- ────────────────────────────────────────────────────────────
 
 -- HOD  (id = 1)
-INSERT INTO users (username, email, password_hash, role, full_name, phone, is_active)
-VALUES ('hod', 'hod@college.edu', '$2a$12$d4prj.VbrA2G/2flufZo7.FHdRVlVPKWzU17mBGyaMjWVJjZiIq/i', 'hod', 'Dr. Jameer Bashs ', '9000000001', true);
+INSERT INTO users (username, email, gmail, password_hash, role, full_name, phone, is_active)
+VALUES ('hod', 'hod@college.edu', 'hod@college.edu', '$2a$12$d4prj.VbrA2G/2flufZo7.FHdRVlVPKWzU17mBGyaMjWVJjZiIq/i', 'hod', 'Dr. Jameer Bashs ', '9000000001', true);
 
 -- Staff (ids = 2, 3, 4)
-INSERT INTO users (username, email, password_hash, role, full_name, phone, is_active) VALUES
-  ('staff1', 'staff1@college.edu', '$2a$12$f/tjEhTmlZ2405xGpnWOTuF7R4nzFgmH/kF4KcDngs/Szw7LqMMMC', 'staff', 'Prof. Suganthi',    '9000000002', true),
-  ('staff2', 'staff2@college.edu', '$2a$12$f/tjEhTmlZ2405xGpnWOTuF7R4nzFgmH/kF4KcDngs/Szw7LqMMMC', 'staff', 'Prof. Sathish Kumar',     '9000000003', true),
-  ('staff3', 'staff3@college.edu', '$2a$12$f/tjEhTmlZ2405xGpnWOTuF7R4nzFgmH/kF4KcDngs/Szw7LqMMMC', 'staff', 'Prof. Subahlakshmi',    '9000000004', true);
+INSERT INTO users (username, email, gmail, password_hash, role, full_name, phone, is_active) VALUES
+  ('staff1', 'staff1@college.edu', 'staff1@college.edu', '$2a$12$f/tjEhTmlZ2405xGpnWOTuF7R4nzFgmH/kF4KcDngs/Szw7LqMMMC', 'staff', 'Prof. Suganthi',    '9000000002', true),
+  ('staff2', 'staff2@college.edu', 'staff2@college.edu', '$2a$12$f/tjEhTmlZ2405xGpnWOTuF7R4nzFgmH/kF4KcDngs/Szw7LqMMMC', 'staff', 'Prof. Sathish Kumar',     '9000000003', true),
+  ('staff3', 'staff3@college.edu', 'staff3@college.edu', '$2a$12$f/tjEhTmlZ2405xGpnWOTuF7R4nzFgmH/kF4KcDngs/Szw7LqMMMC', 'staff', 'Prof. Subahlakshmi',    '9000000004', true);
 
 -- Students (ids = 5 … 14)
-INSERT INTO users (username, email, password_hash, role, full_name, phone, is_active) VALUES
-  ('student1',  'student1@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Mohan s ',        '9100000001', true),
-  ('student2',  'student2@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Hirthik Varma ',       '9100000002', true),
-  ('student3',  'student3@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Ananya Iyer',        '9100000003', true),
-  ('student4',  'student4@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Diya Nair',          '9100000004', true),
-  ('student5',  'student5@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Ishaan Gupta',       '9100000005', true),
-  ('student6',  'student6@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Kavya Desai',        '9100000006', true),
-  ('student7',  'student7@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Rohan Joshi',        '9100000007', true),
-  ('student8',  'student8@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Meera Rao',          '9100000008', true),
-  ('student9',  'student9@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Arjun Verma',        '9100000009', true),
-  ('student10', 'student10@college.edu', '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Sneha Kulkarni',     '9100000010', true);
+INSERT INTO users (username, email, gmail, password_hash, role, full_name, phone, is_active) VALUES
+  ('student1',  'student1@college.edu', 'student1@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Mohan s ',        '9100000001', true),
+  ('student2',  'student2@college.edu', 'student2@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Hirthik Varma ',       '9100000002', true),
+  ('student3',  'student3@college.edu', 'student3@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Ananya Iyer',        '9100000003', true),
+  ('student4',  'student4@college.edu', 'student4@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Diya Nair',          '9100000004', true),
+  ('student5',  'student5@college.edu', 'student5@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Ishaan Gupta',       '9100000005', true),
+  ('student6',  'student6@college.edu', 'student6@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Kavya Desai',        '9100000006', true),
+  ('student7',  'student7@college.edu', 'student7@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Rohan Joshi',        '9100000007', true),
+  ('student8',  'student8@college.edu', 'student8@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Meera Rao',          '9100000008', true),
+  ('student9',  'student9@college.edu', 'student9@college.edu',  '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Arjun Verma',        '9100000009', true),
+  ('student10', 'student10@college.edu', 'student10@college.edu', '$2a$12$5.iSoQ75U8Y1GSpeDdR3YOEpjNx7Hw38xhKcusriRFtViN6vmwAvm', 'student', 'Sneha Kulkarni',     '9100000010', true);
 
 -- ────────────────────────────────────────────────────────────
 -- 2. DEPARTMENTS
@@ -213,3 +244,5 @@ INSERT INTO leave_requests (staff_id, leave_type, start_date, end_date, reason, 
 -- ============================================================
 -- Seed complete!
 -- ============================================================
+
+COMMIT;
