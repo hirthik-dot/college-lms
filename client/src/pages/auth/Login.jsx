@@ -61,9 +61,9 @@ export default function Login() {
                     </div>
 
                     <h1 className="text-5xl font-extrabold tracking-tight leading-[1.1] mb-6">
-                        Empowering<br />
+                        Get Best<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">
-                            Academic Excellence
+                            In Everything
                         </span>
                     </h1>
 

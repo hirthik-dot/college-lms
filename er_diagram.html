@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College LMS — Entity Relationship Diagram</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d14;
+    --surface: #111520;
+    --surface2: #161b28;
+    --border: #1e2535;
+    --border2: #2a3347;
+    --accent: #4f8ef7;
+    --accent2: #7c5ff7;
+    --green: #2dd4a0;
+    --orange: #f59e42;
+    --red: #f76f6f;
+    --pink: #f06fc9;
+    --yellow: #f5d742;
+    --text: #e2e8f4;
+    --text2: #8896b0;
+    --text3: #4a5568;
+    --pk: #f5d742;
+    --fk: #4f8ef7;
+    --uk: #2dd4a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,13,20,0.97);
+    border-bottom: 1px solid var(--border2);
+    backdrop-filter: blur(12px);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 14px; color: #fff;
+  }
+  .header-title { font-size: 15px; font-weight: 700; letter-spacing: 0.02em; }
+  .header-sub { font-size: 11px; color: var(--text2); font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+  .header-badges { display: flex; gap: 8px; }
+  .badge {
+    padding: 4px 10px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+  }
+  .badge-blue { background: rgba(79,142,247,0.15); color: var(--accent); border: 1px solid rgba(79,142,247,0.3); }
+  .badge-green { background: rgba(45,212,160,0.12); color: var(--green); border: 1px solid rgba(45,212,160,0.25); }
+  .badge-purple { background: rgba(124,95,247,0.15); color: var(--accent2); border: 1px solid rgba(124,95,247,0.3); }
+
+  /* ── LEGEND BAR ── */
+  .legend-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 32px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .legend-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; margin-right: 4px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .legend-line { width: 24px; height: 2px; }
+  .ld-pk { background: var(--pk); }
+  .ld-fk { background: var(--fk); }
+  .ld-uk { background: var(--uk); }
+  .ld-idx { background: var(--orange); }
+  .ll-one { background: var(--green); }
+  .ll-many { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .ll-opt { background: var(--text3); border: 1px dashed var(--text2); }
+  .sep { width: 1px; height: 20px; background: var(--border2); }
+
+  /* ── TABS ── */
+  .tabs {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; gap: 0;
+  }
+  .tab {
+    padding: 12px 20px;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    cursor: pointer; border: none; background: none;
+    color: var(--text3);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .tab:hover { color: var(--text2); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── CANVAS ── */
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    overflow: auto;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 30%, rgba(79,142,247,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 80% 70%, rgba(124,95,247,0.04) 0%, transparent 60%),
+      var(--bg);
+  }
+  .canvas-wrap::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .canvas {
+    position: relative;
+    min-width: 2800px;
+    min-height: 2200px;
+    padding: 60px;
+  }
+
+  /* ── SECTION LABELS ── */
+  .section-label {
+    position: absolute;
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 4px 10px;
+    border-radius: 3px;
+    opacity: 0.6;
+  }
+  .sl-core { color: var(--accent); background: rgba(79,142,247,0.08); border: 1px solid rgba(79,142,247,0.2); }
+  .sl-course { color: var(--green); background: rgba(45,212,160,0.07); border: 1px solid rgba(45,212,160,0.18); }
+  .sl-timetable { color: var(--accent2); background: rgba(124,95,247,0.08); border: 1px solid rgba(124,95,247,0.2); }
+  .sl-ai { color: var(--orange); background: rgba(245,158,66,0.08); border: 1px solid rgba(245,158,66,0.2); }
+  .sl-academic { color: var(--pink); background: rgba(240,111,201,0.08); border: 1px solid rgba(240,111,201,0.2); }
+  .sl-system { color: var(--yellow); background: rgba(245,215,66,0.08); border: 1px solid rgba(245,215,66,0.2); }
+
+  /* ── TABLE CARDS ── */
+  .table-card {
+    position: absolute;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+    cursor: default;
+    min-width: 230px;
+  }
+  .table-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(79,142,247,0.15);
+    transform: translateY(-2px);
+    z-index: 20;
+  }
+  .table-card.highlight-green:hover { border-color: var(--green); box-shadow: 0 0 0 1px var(--green), 0 8px 32px rgba(45,212,160,0.15); }
+  .table-card.highlight-purple:hover { border-color: var(--accent2); box-shadow: 0 0 0 1px var(--accent2), 0 8px 32px rgba(124,95,247,0.15); }
+  .table-card.highlight-orange:hover { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 8px 32px rgba(245,158,66,0.15); }
+  .table-card.highlight-pink:hover { border-color: var(--pink); box-shadow: 0 0 0 1px var(--pink), 0 8px 32px rgba(240,111,201,0.15); }
+  .table-card.highlight-yellow:hover { border-color: var(--yellow); box-shadow: 0 0 0 1px var(--yellow), 0 8px 32px rgba(245,215,66,0.15); }
+
+  .table-header {
+    padding: 10px 14px 9px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border2);
+  }
+  .th-blue { background: linear-gradient(135deg, rgba(79,142,247,0.2), rgba(79,142,247,0.08)); }
+  .th-green { background: linear-gradient(135deg, rgba(45,212,160,0.18), rgba(45,212,160,0.07)); }
+  .th-purple { background: linear-gradient(135deg, rgba(124,95,247,0.2), rgba(124,95,247,0.08)); }
+  .th-orange { background: linear-gradient(135deg, rgba(245,158,66,0.2), rgba(245,158,66,0.08)); }
+  .th-pink { background: linear-gradient(135deg, rgba(240,111,201,0.18), rgba(240,111,201,0.07)); }
+  .th-yellow { background: linear-gradient(135deg, rgba(245,215,66,0.18), rgba(245,215,66,0.07)); }
+  .th-red { background: linear-gradient(135deg, rgba(247,111,111,0.18), rgba(247,111,111,0.07)); }
+
+  .table-icon {
+    width: 22px; height: 22px;
+    border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+  }
+  .ti-blue { background: rgba(79,142,247,0.25); }
+  .ti-green { background: rgba(45,212,160,0.2); }
+  .ti-purple { background: rgba(124,95,247,0.25); }
+  .ti-orange { background: rgba(245,158,66,0.2); }
+  .ti-pink { background: rgba(240,111,201,0.2); }
+  .ti-yellow { background: rgba(245,215,66,0.2); }
+  .ti-red { background: rgba(247,111,111,0.2); }
+
+  .table-name {
+    font-size: 12px; font-weight: 800;
+    letter-spacing: 0.03em;
+    font-family: 'JetBrains Mono', monospace;
+    flex: 1;
+  }
+  .table-rows-count {
+    font-size: 9px; font-weight: 600;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(255,255,255,0.04);
+    padding: 2px 6px; border-radius: 3px;
+  }
+
+  /* ── COLUMNS ── */
+  .table-body { padding: 4px 0; }
+  .col-row {
+    display: flex; align-items: center; gap: 0;
+    padding: 3px 14px;
+    transition: background 0.12s;
+  }
+  .col-row:hover { background: rgba(255,255,255,0.03); }
+  .col-row.divider { border-top: 1px solid rgba(255,255,255,0.04); margin-top: 2px; padding-top: 5px; }
+
+  .col-key-badge {
+    width: 28px; flex-shrink: 0;
+    font-size: 8px; font-weight: 800;
+    letter-spacing: 0.06em;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+  }
+  .ckb-pk { color: var(--pk); }
+  .ckb-fk { color: var(--fk); }
+  .ckb-uk { color: var(--uk); }
+  .ckb-idx { color: var(--orange); }
+  .ckb-none { color: transparent; }
+
+  .col-name {
+    flex: 1;
+    font-size: 11px; font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+  }
+  .col-name.col-nullable { color: var(--text2); }
+  .col-type {
+    font-size: 9px; font-weight: 600;
+    color: var(--text3);
+    font-family: 'JetBrains Mono', monospace;
+    text-align: right;
+    min-width: 60px;
+  }
+  .ct-int { color: #6499f7; }
+  .ct-varchar { color: #7cb8a0; }
+  .ct-text { color: #7cb8a0; }
+  .ct-bool { color: #c9a96e; }
+  .ct-ts { color: #9b85d4; }
+  .ct-enum { color: #d4856e; }
+  .ct-uuid { color: #e8a87c; }
+  .ct-json { color: #b8d46e; }
+  .ct-decimal { color: #6499f7; }
+  .ct-date { color: #9b85d4; }
+  .ct-bigint { color: #6499f7; }
+  .ct-inet { color: #e8a87c; }
+  .ct-time { color: #9b85d4; }
+  .ct-arr { color: var(--text3); }
+
+  /* ── SVG LAYER ── */
+  #svg-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  /* ── RELATIONSHIP LINE STYLES ── */
+  .rel-line { fill: none; stroke-width: 1.5; opacity: 0.55; }
+  .rel-one { stroke: var(--green); }
+  .rel-many { stroke: var(--accent); }
+  .rel-opt { stroke: var(--text3); stroke-dasharray: 5,3; }
+
+  /* ── TOOLTIP ── */
+  .tooltip {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: var(--text2);
+    pointer-events: none;
+    z-index: 200;
+    display: none;
+    max-width: 260px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .tooltip-title { font-weight: 800; color: var(--text); margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .tooltip-row { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 3px; }
+  .tooltip-key { color: var(--text3); }
+  .tooltip-val { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(10,13,20,0.97);
+    border-top: 1px solid var(--border);
+    padding: 8px 32px;
+    display: flex; align-items: center; gap: 24px;
+    backdrop-filter: blur(12px);
+    z-index: 90;
+  }
+  .stat-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .stat-num { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; }
+  .stat-lbl { color: var(--text3); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .stat-sep { width: 1px; height: 18px; background: var(--border2); }
+
+  /* ── VIEW CARD ── */
+  .view-card {
+    border-style: dashed !important;
+    opacity: 0.85;
+  }
+
+  /* ── MINIMAP ── */
+  .minimap {
+    position: fixed; bottom: 56px; right: 24px;
+    width: 180px; height: 120px;
+    background: rgba(17,21,32,0.97);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 80;
+  }
+  .minimap canvas { width: 100%; height: 100%; }
+
+  /* ── ZOOM CONTROLS ── */
+  .zoom-controls {
+    position: fixed; bottom: 56px; right: 216px;
+    display: flex; flex-direction: column; gap: 4px;
+    z-index: 80;
+  }
+  .zoom-btn {
+    width: 32px; height: 32px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 6px; color: var(--text2);
+    cursor: pointer; font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .zoom-btn:hover { background: var(--border2); color: var(--text); }
+  .zoom-level {
+    width: 32px; height: 24px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text3);
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .canvas-scaler { transform-origin: top left; transition: transform 0.15s; }
+
+  /* ── VIEW TOGGLE ── */
+  #panel-info {
+    display: none;
+  }
+  #panel-info.visible { display: block; }
+
+  .info-panel {
+    position: fixed; right: 24px; top: 120px;
+    width: 280px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 16px;
+    z-index: 85;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .info-panel h3 { font-size: 13px; margin-bottom: 12px; color: var(--text); }
+  .info-close {
+    position: absolute; top: 12px; right: 12px;
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-mark">ER</div>
+    <div>
+      <div class="header-title">College LMS — Entity Relationship Diagram</div>
+      <div class="header-sub">Hindusthan Institute of Technology · CSE Department · PostgreSQL 15+</div>
+    </div>
+  </div>
+  <div class="header-badges">
+    <span class="badge badge-blue">25 Tables</span>
+    <span class="badge badge-green">Production Hardened</span>
+    <span class="badge badge-purple">Migration 004</span>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend-bar">
+  <span class="legend-label">Keys:</span>
+  <div class="legend-item"><div class="legend-dot ld-pk"></div> PK — Primary Key</div>
+  <div class="legend-item"><div class="legend-dot ld-fk"></div> FK — Foreign Key</div>
+  <div class="legend-item"><div class="legend-dot ld-uk"></div> UK — Unique Key</div>
+  <div class="legend-item"><div class="legend-dot ld-idx"></div> IX — Index</div>
+  <div class="sep"></div>
+  <span class="legend-label">Relations:</span>
+  <div class="legend-item"><div class="legend-line ll-one"></div> One-to-One</div>
+  <div class="legend-item"><div class="legend-line ll-many"></div> One-to-Many</div>
+  <div class="legend-item"><div class="legend-line ll-opt" style="height:2px;border-top:2px dashed var(--text3)"></div> Optional FK</div>
+  <div class="sep"></div>
+  <span class="legend-label">Types:</span>
+  <div class="legend-item"><span class="ct-int" style="font-family:monospace;font-size:11px">INT</span> Integer</div>
+  <div class="legend-item"><span class="ct-varchar" style="font-family:monospace;font-size:11px">VC</span> Varchar</div>
+  <div class="legend-item"><span class="ct-bool" style="font-family:monospace;font-size:11px">BOOL</span> Boolean</div>
+  <div class="legend-item"><span class="ct-ts" style="font-family:monospace;font-size:11px">TS</span> Timestamp</div>
+  <div class="legend-item"><span class="ct-enum" style="font-family:monospace;font-size:11px">ENUM</span> Enum</div>
+  <div class="legend-item"><span class="ct-uuid" style="font-family:monospace;font-size:11px">UUID</span> UUID</div>
+  <div class="legend-item"><span class="ct-json" style="font-family:monospace;font-size:11px">JSON</span> JSONB</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="showAll()">All Tables</button>
+  <button class="tab" onclick="filterGroup('core')">Core Auth</button>
+  <button class="tab" onclick="filterGroup('course')">Course Plan</button>
+  <button class="tab" onclick="filterGroup('timetable')">Timetable</button>
+  <button class="tab" onclick="filterGroup('academic')">Academic</button>
+  <button class="tab" onclick="filterGroup('system')">System</button>
+</div>
+
+<!-- MAIN CANVAS -->
+<div class="canvas-wrap" id="canvasWrap">
+  <div class="canvas-scaler" id="canvasScaler">
+  <div class="canvas" id="mainCanvas">
+
+    <svg id="svg-layer"></svg>
+
+    <!-- SECTION LABELS -->
+    <div class="section-label sl-core" style="left:60px;top:30px">● Core / Auth</div>
+    <div class="section-label sl-course" style="left:900px;top:30px">● Course Plan System</div>
+    <div class="section-label sl-timetable" style="left:1900px;top:30px">● Timetable System</div>
+    <div class="section-label sl-academic" style="left:60px;top:820px">● Academic</div>
+    <div class="section-label sl-system" style="left:60px;top:1550px">● System / Audit</div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- CORE AUTH GROUP -->
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <!-- USERS -->
+    <div class="table-card highlight-blue" id="tbl-users" data-group="core" style="left:300px;top:80px;width:260px;"
+         onmouseenter="showTooltip(event,'users','Central auth table for all roles','student | staff | hod','~500 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-blue">
+        <div class="table-icon ti-blue">👤</div>
+        <div class="table-name" style="color:#7ab3ff">users</div>
+        <div class="table-rows-count">~500</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">username</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">gmail</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">email</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">password_hash</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">role</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">full_name</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">department_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">phone</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">is_active</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable" style="color:var(--text3)">deleted_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- DEPARTMENTS -->
+    <div class="table-card highlight-blue" id="tbl-departments" data-group="core" style="left:60px;top:80px;width:220px;"
+         onmouseenter="showTooltip(event,'departments','Academic departments (CSE, ECE etc.)','hod_id → users','~5 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-blue">
+        <div class="table-icon ti-blue">🏛</div>
+        <div class="table-name" style="color:#7ab3ff">departments</div>
+        <div class="table-rows-count">~5</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">name</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">code</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">hod_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- STAFF PROFILES -->
+    <div class="table-card highlight-blue" id="tbl-staff-profiles" data-group="core" style="left:60px;top:390px;width:230px;"
+         onmouseenter="showTooltip(event,'staff_profiles','Extended info for staff users','user_id → users (1:1)','~60 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-blue">
+        <div class="table-icon ti-blue">🎓</div>
+        <div class="table-name" style="color:#7ab3ff">staff_profiles</div>
+        <div class="table-rows-count">~60</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">user_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">employee_id</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">staff_code</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">designation</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">phone</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- STUDENT PROFILES -->
+    <div class="table-card highlight-blue" id="tbl-student-profiles" data-group="core" style="left:300px;top:500px;width:240px;"
+         onmouseenter="showTooltip(event,'student_profiles','Extended info for student users','user_id → users (1:1)','~440 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-blue">
+        <div class="table-icon ti-blue">📚</div>
+        <div class="table-name" style="color:#7ab3ff">student_profiles</div>
+        <div class="table-rows-count">~440</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">user_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">roll_number</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">batch</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">year_of_study</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">parent_phone</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- SUBJECTS -->
+    <div class="table-card highlight-blue" id="tbl-subjects" data-group="core" style="left:600px;top:80px;width:240px;"
+         onmouseenter="showTooltip(event,'subjects','All subjects/courses offered','dept_id → departments','~80 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-blue">
+        <div class="table-icon ti-blue">📖</div>
+        <div class="table-name" style="color:#7ab3ff">subjects</div>
+        <div class="table-rows-count">~80</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">name</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">code</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name col-nullable">semester</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">academic_year</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">department_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">staff_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">is_active</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- CLASSES -->
+    <div class="table-card highlight-purple" id="tbl-classes" data-group="timetable" style="left:1900px;top:80px;width:250px;"
+         onmouseenter="showTooltip(event,'classes','Class sections like II CSE A','Per academic year','~20 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-purple">
+        <div class="table-icon ti-purple">🏫</div>
+        <div class="table-name" style="color:#b09fff">classes</div>
+        <div class="table-rows-count">~20</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">name</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">year</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">section</span><span class="col-type ct-varchar">VC(10)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">department</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">semester</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">academic_year</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">is_combined</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">combined_with</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_active</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- COURSE PLAN GROUP -->
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <!-- COURSE PLAN UPLOADS -->
+    <div class="table-card highlight-green" id="tbl-cpu" data-group="course" style="left:900px;top:80px;width:260px;"
+         onmouseenter="showTooltip(event,'course_plan_uploads','HOD-approved course plan PDFs per staff/subject','faculty_id, subject_id','~100 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-green">
+        <div class="table-icon ti-green">📋</div>
+        <div class="table-name" style="color:#6ddfc0">course_plan_uploads</div>
+        <div class="table-rows-count">~100</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">faculty_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">original_filename</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">file_url</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">academic_year</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">total_theory_hours</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">total_lab_hours</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_active</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">uploaded_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- COURSE PLAN TOPICS -->
+    <div class="table-card highlight-green" id="tbl-cpt" data-group="course" style="left:900px;top:420px;width:270px;"
+         onmouseenter="showTooltip(event,'course_plan_topics','Individual topics in a course plan','upload_id + display_order','~3000 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-green">
+        <div class="table-icon ti-green">📝</div>
+        <div class="table-name" style="color:#6ddfc0">course_plan_topics</div>
+        <div class="table-rows-count">~3000</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">upload_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">faculty_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">unit_name</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">topic_name</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">sno</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">periods_required</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">display_order</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">status</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">co_bloom</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">reference_book</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">completed_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- TOPIC HOUR REPORTS -->
+    <div class="table-card highlight-orange" id="tbl-thr" data-group="course" style="left:1220px;top:420px;width:270px;"
+         onmouseenter="showTooltip(event,'topic_hour_reports','Staff hour reports with AI verification','1 active report per topic','~3000 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-orange">
+        <div class="table-icon ti-orange">🤖</div>
+        <div class="table-name" style="color:#ffc070">topic_hour_reports</div>
+        <div class="table-rows-count">~3000</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">topic_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">faculty_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">what_was_covered</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">proof_image_url</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">teaching_aids</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">teaching_methods</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">ai_score</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">ai_verified</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">ai_flagged</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">ai_low_confidence</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">ai_reason</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">ai_layer_scores</span><span class="col-type ct-json">JSONB</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">ai_manually_reviewed</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">staff_confirmed_flag</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">report_status</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">version</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">superseded_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">submitted_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">updated_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- TOPIC MATERIALS -->
+    <div class="table-card highlight-green" id="tbl-tm" data-group="course" style="left:1220px;top:80px;width:260px;"
+         onmouseenter="showTooltip(event,'topic_materials','Study materials linked to topics','Released to students on submission','~5000 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-green">
+        <div class="table-icon ti-green">📎</div>
+        <div class="table-name" style="color:#6ddfc0">topic_materials</div>
+        <div class="table-rows-count">~5000</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">topic_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">faculty_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">title</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">description</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">material_type</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">file_url</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">is_released</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">released_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">added_when</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">uploaded_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- STUDENT MATERIAL NOTIFICATIONS -->
+    <div class="table-card highlight-green" id="tbl-smn" data-group="course" style="left:1530px;top:80px;width:250px;"
+         onmouseenter="showTooltip(event,'student_material_notifications','Tracks which students got notified of new materials','topic_id + student_id + material_id','~50k rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-green">
+        <div class="table-icon ti-green">🔔</div>
+        <div class="table-name" style="color:#6ddfc0">student_material_notif...</div>
+        <div class="table-rows-count">~50k</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">topic_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">student_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">material_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">notified_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">notification_type</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">is_read</span><span class="col-type ct-bool">BOOL</span></div>
+      </div>
+    </div>
+
+    <!-- TEACHING METHOD OPTIONS -->
+    <div class="table-card highlight-green" id="tbl-tmo" data-group="course" style="left:900px;top:870px;width:230px;"
+         onmouseenter="showTooltip(event,'teaching_method_options','Normalized lookup: Lecture, Demo, Lab etc.','Prevents free-text inconsistency','~10 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-green">
+        <div class="table-icon ti-green">🎯</div>
+        <div class="table-name" style="color:#6ddfc0">teaching_method_opt...</div>
+        <div class="table-rows-count">~10</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">name</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">description</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_active</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- TEACHING AID OPTIONS -->
+    <div class="table-card highlight-green" id="tbl-tao" data-group="course" style="left:1160px;top:870px;width:230px;"
+         onmouseenter="showTooltip(event,'teaching_aid_options','Normalized lookup: Whiteboard, PPT, Video etc.','Prevents free-text inconsistency','~10 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-green">
+        <div class="table-icon ti-green">🛠</div>
+        <div class="table-name" style="color:#6ddfc0">teaching_aid_options</div>
+        <div class="table-rows-count">~10</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">name</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">description</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_active</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- TIMETABLE GROUP -->
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <!-- TIMETABLE UPLOADS -->
+    <div class="table-card highlight-purple" id="tbl-tu" data-group="timetable" style="left:2200px;top:80px;width:240px;"
+         onmouseenter="showTooltip(event,'timetable_uploads','PDF upload audit log','HOD uploads faculty timetable PDF','~20 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-purple">
+        <div class="table-icon ti-purple">📤</div>
+        <div class="table-name" style="color:#b09fff">timetable_uploads</div>
+        <div class="table-rows-count">~20</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">uploaded_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">filename</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">uploaded_at</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">status</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">error_log</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">staff_parsed</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">slots_created</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">subjects_found</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">classes_found</span><span class="col-type ct-int">INT</span></div>
+      </div>
+    </div>
+
+    <!-- STAFF SUBJECT ASSIGNMENTS -->
+    <div class="table-card highlight-purple" id="tbl-ssa" data-group="timetable" style="left:1900px;top:400px;width:250px;"
+         onmouseenter="showTooltip(event,'staff_subject_assignments','Which staff teaches which subject to which class','UNIQUE: staff+subject+class+type','~200 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-purple">
+        <div class="table-icon ti-purple">🔗</div>
+        <div class="table-name" style="color:#b09fff">staff_subject_assign...</div>
+        <div class="table-rows-count">~200</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">staff_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">class_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">hours_per_week</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">slot_type</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">academic_year</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">semester</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+      </div>
+    </div>
+
+    <!-- FACULTY TIMETABLE SLOTS -->
+    <div class="table-card highlight-purple" id="tbl-fts" data-group="timetable" style="left:1900px;top:700px;width:260px;"
+         onmouseenter="showTooltip(event,'faculty_timetable_slots','Staff weekly schedule slots','UNIQUE: staff+day+hour+year+sem','~1500 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-purple">
+        <div class="table-icon ti-purple">📅</div>
+        <div class="table-name" style="color:#b09fff">faculty_timetable_slots</div>
+        <div class="table-rows-count">~1500</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">staff_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">class_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">day</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">hour_number</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">start_time</span><span class="col-type ct-time">TIME</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">end_time</span><span class="col-type ct-time">TIME</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">slot_type</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_practical_span</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">practical_pair_hour</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_non_teaching</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_cross_dept</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">raw_class_name</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">academic_year</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">semester</span><span class="col-type ct-varchar">VC(20)</span></div>
+      </div>
+    </div>
+
+    <!-- CLASS TIMETABLE SLOTS -->
+    <div class="table-card highlight-purple" id="tbl-cts" data-group="timetable" style="left:2210px;top:420px;width:260px;"
+         onmouseenter="showTooltip(event,'class_timetable_slots','Derived from faculty slots, per-class view','UNIQUE: class+day+hour+year+sem','~1500 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-purple">
+        <div class="table-icon ti-purple">🗓</div>
+        <div class="table-name" style="color:#b09fff">class_timetable_slots</div>
+        <div class="table-rows-count">~1500</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">class_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">staff_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">day</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">hour_number</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">start_time</span><span class="col-type ct-time">TIME</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">end_time</span><span class="col-type ct-time">TIME</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">slot_type</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_non_teaching</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_practical_span</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">academic_year</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">semester</span><span class="col-type ct-varchar">VC(20)</span></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- ACADEMIC GROUP -->
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <!-- SUBJECT ENROLLMENTS -->
+    <div class="table-card highlight-pink" id="tbl-se" data-group="academic" style="left:60px;top:820px;width:230px;"
+         onmouseenter="showTooltip(event,'subject_enrollments','Student enrolled in which subjects','UNIQUE: subject+student','~20k rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">📌</div>
+        <div class="table-name" style="color:#f7a8e0">subject_enrollments</div>
+        <div class="table-rows-count">~20k</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">student_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">enrolled_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE SESSIONS -->
+    <div class="table-card highlight-pink" id="tbl-as" data-group="academic" style="left:310px;top:820px;width:240px;"
+         onmouseenter="showTooltip(event,'attendance_sessions','Each teaching session (one per class)','staff creates session, then marks records','~5000 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">✅</div>
+        <div class="table-name" style="color:#f7a8e0">attendance_sessions</div>
+        <div class="table-rows-count">~5000</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">staff_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">session_date</span><span class="col-type ct-date">DATE</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">session_type</span><span class="col-type ct-varchar">VC(20)</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE RECORDS -->
+    <div class="table-card highlight-pink" id="tbl-ar" data-group="academic" style="left:570px;top:820px;width:230px;"
+         onmouseenter="showTooltip(event,'attendance_records','Present/Absent per student per session','UNIQUE: session+student','~200k rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">📊</div>
+        <div class="table-name" style="color:#f7a8e0">attendance_records</div>
+        <div class="table-rows-count">~200k</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">session_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">student_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">status</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">marked_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div class="table-card highlight-pink" id="tbl-asgn" data-group="academic" style="left:60px;top:1090px;width:230px;"
+         onmouseenter="showTooltip(event,'assignments','Assignments given by staff','due_date indexed for deadline checks','~500 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">📋</div>
+        <div class="table-name" style="color:#f7a8e0">assignments</div>
+        <div class="table-rows-count">~500</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">title</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">description</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">due_date</span><span class="col-type ct-ts">TS</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">max_marks</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">created_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_active</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ASSIGNMENT SUBMISSIONS -->
+    <div class="table-card highlight-pink" id="tbl-asub" data-group="academic" style="left:310px;top:1090px;width:240px;"
+         onmouseenter="showTooltip(event,'assignment_submissions','Student submissions for assignments','UNIQUE: assignment+student','~15k rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">📨</div>
+        <div class="table-name" style="color:#f7a8e0">assignment_submissions</div>
+        <div class="table-rows-count">~15k</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">assignment_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">student_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">file_url</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">marks_obtained</span><span class="col-type ct-decimal">DECIMAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_late</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">submitted_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ASSESSMENTS -->
+    <div class="table-card highlight-pink" id="tbl-assess" data-group="academic" style="left:570px;top:1090px;width:240px;"
+         onmouseenter="showTooltip(event,'assessments','Internal tests, mid-terms, practicals','assessment_type: internal|midterm|practical|viva','~200 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">📝</div>
+        <div class="table-name" style="color:#f7a8e0">assessments</div>
+        <div class="table-rows-count">~200</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">name</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">max_marks</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">assessment_type</span><span class="col-type ct-varchar">VC(30)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">conducted_date</span><span class="col-type ct-date">DATE</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">created_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ASSESSMENT MARKS -->
+    <div class="table-card highlight-pink" id="tbl-am" data-group="academic" style="left:830px;top:1090px;width:230px;"
+         onmouseenter="showTooltip(event,'assessment_marks','Marks per student per assessment','UNIQUE: assessment+student','~50k rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">🏆</div>
+        <div class="table-name" style="color:#f7a8e0">assessment_marks</div>
+        <div class="table-rows-count">~50k</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">assessment_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">student_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">marks_obtained</span><span class="col-type ct-decimal">DECIMAL(5,2)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">is_published</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">entered_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">entered_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- COURSE CONTENT -->
+    <div class="table-card highlight-pink" id="tbl-cc" data-group="academic" style="left:1080px;top:1090px;width:240px;"
+         onmouseenter="showTooltip(event,'course_content','Uploaded study materials per subject','pdf|ppt|video|link|doc types','~2000 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">🎬</div>
+        <div class="table-name" style="color:#f7a8e0">course_content</div>
+        <div class="table-rows-count">~2000</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">title</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">content_type</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">file_url</span><span class="col-type ct-varchar">VC(500)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name col-nullable">week_number</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">uploaded_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">is_visible</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">uploaded_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div class="table-card highlight-pink" id="tbl-ann" data-group="academic" style="left:1340px;top:1090px;width:240px;"
+         onmouseenter="showTooltip(event,'announcements','System-wide announcements','all | students | staff audience','~500 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">📢</div>
+        <div class="table-name" style="color:#f7a8e0">announcements</div>
+        <div class="table-rows-count">~500</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">title</span><span class="col-type ct-varchar">VC(255)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">body</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">target_audience</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">posted_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">subject_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">department_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">is_pinned</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- LEAVE REQUESTS -->
+    <div class="table-card highlight-pink" id="tbl-lr" data-group="academic" style="left:1600px;top:1090px;width:240px;"
+         onmouseenter="showTooltip(event,'leave_requests','Staff leave applications','casual|medical|duty|other types','~500 rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-pink">
+        <div class="table-icon ti-pink">🏖</div>
+        <div class="table-name" style="color:#f7a8e0">leave_requests</div>
+        <div class="table-rows-count">~500</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-int">SERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name">staff_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">leave_type</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">start_date</span><span class="col-type ct-date">DATE</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">end_date</span><span class="col-type ct-date">DATE</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">reason</span><span class="col-type ct-text">TEXT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">status</span><span class="col-type ct-enum">ENUM</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">reviewed_by</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row divider"><span class="col-key-badge ckb-none"></span><span class="col-name" style="color:var(--text3)">is_deleted</span><span class="col-type ct-bool">BOOL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- SYSTEM GROUP -->
+    <!-- ══════════════════════════════════════════════════════ -->
+
+    <!-- AUDIT LOGS -->
+    <div class="table-card highlight-yellow" id="tbl-audit" data-group="system" style="left:60px;top:1540px;width:280px;"
+         onmouseenter="showTooltip(event,'audit_logs','Immutable NAAC/NBA compliance trail','NEVER delete rows from this table','Millions of rows')"
+         onmouseleave="hideTooltip()">
+      <div class="table-header th-yellow">
+        <div class="table-icon ti-yellow">🔐</div>
+        <div class="table-name" style="color:#f5e060">audit_logs</div>
+        <div class="table-rows-count">millions</div>
+      </div>
+      <div class="table-body">
+        <div class="col-row"><span class="col-key-badge ckb-pk">PK</span><span class="col-name">id</span><span class="col-type ct-bigint">BIGSERIAL</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-uk">UK</span><span class="col-name">uuid</span><span class="col-type ct-uuid">UUID</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-fk">FK</span><span class="col-name col-nullable">user_id</span><span class="col-type ct-int">INT</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">user_role</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">action</span><span class="col-type ct-varchar">VC(50)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">table_name</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name col-nullable">record_id</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">record_uuid</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">old_values</span><span class="col-type ct-json">JSONB</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">new_values</span><span class="col-type ct-json">JSONB</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">changed_fields</span><span class="col-type ct-arr">TEXT[]</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">ip_address</span><span class="col-type ct-inet">INET</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-none"></span><span class="col-name col-nullable">request_id</span><span class="col-type ct-varchar">VC(100)</span></div>
+        <div class="col-row"><span class="col-key-badge ckb-idx">IX</span><span class="col-name">created_at</span><span class="col-type ct-ts">TS</span></div>
+      </div>
+    </div>
+
+  </div><!-- /canvas -->
+  </div><!-- /canvasScaler -->
+</div><!-- /canvasWrap -->
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-title" id="tt-title"></div>
+  <div class="tooltip-row"><span class="tooltip-key">Purpose</span><span class="tooltip-val" id="tt-purpose"></span></div>
+  <div class="tooltip-row"><span class="tooltip-key">Key info</span><span class="tooltip-val" id="tt-info"></span></div>
+  <div class="tooltip-row"><span class="tooltip-key">Est. rows</span><span class="tooltip-val" id="tt-rows"></span></div>
+</div>
+
+<!-- ZOOM CONTROLS -->
+<div class="zoom-controls">
+  <button class="zoom-btn" onclick="zoom(0.1)">+</button>
+  <div class="zoom-level" id="zoomLabel">100%</div>
+  <button class="zoom-btn" onclick="zoom(-0.1)">−</button>
+  <button class="zoom-btn" onclick="resetZoom()" style="font-size:10px">⟳</button>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item"><span class="stat-num" style="color:var(--accent)">25</span><span class="stat-lbl">Tables</span></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><span class="stat-num" style="color:var(--green)">75+</span><span class="stat-lbl">Indexes</span></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><span class="stat-num" style="color:var(--accent2)">40+</span><span class="stat-lbl">FK Relations</span></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><span class="stat-num" style="color:var(--orange)">25</span><span class="stat-lbl">UUID Cols</span></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><span class="stat-num" style="color:var(--yellow)">25</span><span class="stat-lbl">Soft Delete</span></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><span class="stat-num" style="color:var(--pink)">Auto</span><span class="stat-lbl">Audit Triggers</span></div>
+  <div class="stat-sep"></div>
+  <div class="stat-item"><span class="stat-num" style="color:var(--text2)">PostgreSQL 15+</span><span class="stat-lbl">Engine</span></div>
+  <div class="stat-sep"></div>
+  <span style="font-size:10px;color:var(--text3);margin-left:auto">
+    Hindusthan Institute of Technology · CSE Dept · College LMS v1.0
+  </span>
+</div>
+
+<script>
+// ── ZOOM ──
+let scale = 1;
+const scaler = document.getElementById('canvasScaler');
+const zoomLabel = document.getElementById('zoomLabel');
+
+function zoom(delta) {
+  scale = Math.min(2, Math.max(0.3, scale + delta));
+  scaler.style.transform = `scale(${scale})`;
+  zoomLabel.textContent = Math.round(scale * 100) + '%';
+}
+function resetZoom() {
+  scale = 0.6;
+  scaler.style.transform = `scale(${scale})`;
+  zoomLabel.textContent = Math.round(scale * 100) + '%';
+}
+// Default zoom to fit more
+window.onload = () => resetZoom();
+
+// ── TOOLTIP ──
+function showTooltip(e, title, purpose, info, rows) {
+  const tt = document.getElementById('tooltip');
+  document.getElementById('tt-title').textContent = title;
+  document.getElementById('tt-purpose').textContent = purpose;
+  document.getElementById('tt-info').textContent = info;
+  document.getElementById('tt-rows').textContent = rows;
+  tt.style.display = 'block';
+  tt.style.left = (e.clientX + 16) + 'px';
+  tt.style.top = (e.clientY - 10) + 'px';
+}
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// ── TABS / FILTER ──
+function showAll() {
+  document.querySelectorAll('.table-card').forEach(c => c.style.opacity = '1');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+function filterGroup(group) {
+  document.querySelectorAll('.table-card').forEach(c => {
+    c.style.opacity = c.dataset.group === group ? '1' : '0.12';
+  });
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ── DRAW RELATIONSHIP LINES ──
+function getCenter(el) {
+  const canvas = document.getElementById('mainCanvas');
+  const cr = canvas.getBoundingClientRect();
+  const er = el.getBoundingClientRect();
+  return {
+    x: (er.left - cr.left) / scale + er.width / scale / 2,
+    y: (er.top - cr.top) / scale + er.height / scale / 2,
+    top: (er.top - cr.top) / scale,
+    bottom: (er.top - cr.top) / scale + er.height / scale,
+    left: (er.left - cr.left) / scale,
+    right: (er.left - cr.left) / scale + er.width / scale
+  };
+}
+
+function drawLine(svg, from, to, cls, label) {
+  const f = getCenter(from);
+  const t = getCenter(to);
+
+  // Pick best anchor points
+  let fx, fy, tx, ty;
+  if (Math.abs(f.x - t.x) > Math.abs(f.y - t.y)) {
+    // Horizontal dominant
+    if (f.x < t.x) { fx = f.right; fy = f.y; tx = t.left; ty = t.y; }
+    else { fx = f.left; fy = f.y; tx = t.right; ty = t.y; }
+  } else {
+    // Vertical dominant
+    if (f.y < t.y) { fx = f.x; fy = f.bottom; tx = t.x; ty = t.top; }
+    else { fx = f.x; fy = f.top; tx = t.x; ty = t.bottom; }
+  }
+
+  const mx = (fx + tx) / 2;
+  const my = (fy + ty) / 2;
+  const path = `M ${fx} ${fy} C ${mx} ${fy}, ${mx} ${ty}, ${tx} ${ty}`;
+
+  const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  el.setAttribute('d', path);
+  el.setAttribute('class', `rel-line ${cls}`);
+  svg.appendChild(el);
+
+  // Crow's foot at target end (many side)
+  if (cls === 'rel-many') {
+    const size = 8;
+    const dx = tx - mx;
+    const dy = ty - my;
+    const len = Math.sqrt(dx*dx + dy*dy) || 1;
+    const nx = dx/len; const ny = dy/len;
+    const px = -ny; const py = nx;
+    const foot = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    foot.setAttribute('d',
+      `M ${tx} ${ty} L ${tx - nx*size + px*5} ${ty - ny*size + py*5}
+       M ${tx} ${ty} L ${tx - nx*size - px*5} ${ty - ny*size - py*5}
+       M ${tx} ${ty} L ${tx - nx*size} ${ty - ny*size}`
+    );
+    foot.setAttribute('stroke', cls === 'rel-many' ? 'var(--accent)' : 'var(--green)');
+    foot.setAttribute('fill', 'none');
+    foot.setAttribute('stroke-width', '1.5');
+    foot.setAttribute('opacity', '0.6');
+    svg.appendChild(foot);
+  }
+}
+
+function drawAllLines() {
+  const svg = document.getElementById('svg-layer');
+  svg.innerHTML = '';
+
+  const g = id => document.getElementById(id);
+  const lines = [
+    // Core
+    ['tbl-departments', 'tbl-users', 'rel-many'],
+    ['tbl-users', 'tbl-staff-profiles', 'rel-one'],
+    ['tbl-users', 'tbl-student-profiles', 'rel-one'],
+    ['tbl-users', 'tbl-subjects', 'rel-many'],
+    ['tbl-subjects', 'tbl-departments', 'rel-many'],
+    // Course Plan
+    ['tbl-users', 'tbl-cpu', 'rel-many'],
+    ['tbl-subjects', 'tbl-cpu', 'rel-many'],
+    ['tbl-cpu', 'tbl-cpt', 'rel-many'],
+    ['tbl-cpt', 'tbl-thr', 'rel-one'],
+    ['tbl-cpt', 'tbl-tm', 'rel-many'],
+    ['tbl-tm', 'tbl-smn', 'rel-many'],
+    ['tbl-tmo', 'tbl-cpt', 'rel-many'],
+    ['tbl-tao', 'tbl-cpt', 'rel-many'],
+    // Timetable
+    ['tbl-users', 'tbl-ssa', 'rel-many'],
+    ['tbl-subjects', 'tbl-ssa', 'rel-many'],
+    ['tbl-classes', 'tbl-ssa', 'rel-many'],
+    ['tbl-users', 'tbl-fts', 'rel-many'],
+    ['tbl-classes', 'tbl-fts', 'rel-many'],
+    ['tbl-classes', 'tbl-cts', 'rel-many'],
+    ['tbl-users', 'tbl-tu', 'rel-many'],
+    // Academic
+    ['tbl-subjects', 'tbl-se', 'rel-many'],
+    ['tbl-users', 'tbl-se', 'rel-many'],
+    ['tbl-subjects', 'tbl-as', 'rel-many'],
+    ['tbl-as', 'tbl-ar', 'rel-many'],
+    ['tbl-users', 'tbl-ar', 'rel-many'],
+    ['tbl-subjects', 'tbl-asgn', 'rel-many'],
+    ['tbl-asgn', 'tbl-asub', 'rel-many'],
+    ['tbl-subjects', 'tbl-assess', 'rel-many'],
+    ['tbl-assess', 'tbl-am', 'rel-many'],
+    ['tbl-subjects', 'tbl-cc', 'rel-many'],
+    ['tbl-subjects', 'tbl-ann', 'rel-opt'],
+    ['tbl-users', 'tbl-lr', 'rel-many'],
+    // Audit
+    ['tbl-users', 'tbl-audit', 'rel-many'],
+  ];
+
+  for (const [from, to, cls] of lines) {
+    const f = g(from); const t = g(to);
+    if (f && t) drawLine(svg, f, t, cls);
+  }
+}
+
+// Draw after layout settles
+setTimeout(drawAllLines, 400);
+window.addEventListener('resize', () => setTimeout(drawAllLines, 100));
+
+// Redraw on scroll
+document.getElementById('canvasWrap').addEventListener('scroll', () => {
+  setTimeout(drawAllLines, 50);
+});
+</script>
+</body>
+</html>
